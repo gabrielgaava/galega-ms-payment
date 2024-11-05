@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: fargate-application
+  name: postgres-client
+  labels:
+    app: postgres-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-client
+  template:
+    metadata:
+      labels:
+        app: postgres-client
+    spec:
+      containers:
+        - name: postgres-client
+          image: postgres:alpine
+          command: ["/bin/sh"]
+          args: ["-c", "sleep 3600"]  # Isso mantém o container em execução
