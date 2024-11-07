@@ -1,0 +1,16 @@
+{
+  "TableName": "Payment",
+  "KeySchema": [
+    { "AttributeName": "id", "KeyType": "HASH" },
+    { "AttributeName": "externalId", "KeyType": "RANGE" }
+  ],
+  "AttributeDefinitions": [
+    { "AttributeName": "id", "AttributeType": "S" },
+    { "AttributeName": "externalId", "AttributeType": "S" }
+  ],
+  "ProvisionedThroughput": {
+    "ReadCapacityUnits": 5,
+    "WriteCapacityUnits": 5
+  }
+}
+

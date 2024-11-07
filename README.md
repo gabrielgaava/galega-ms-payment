@@ -11,4 +11,9 @@ da solução propsota no Tech Challenge da Fiap para o Pos-Tech de Egenharia de 
 ## Estrutura
 O projeto foi construindo com a arquitetura Hexagonal e visando integração com cluster EKS (Kubernetes)
 
-## 
+## Rodando Localmente
+### 1. Para Iniciar o DynamoDB com Docker
+docker run -p 8000:8000 amazon/dynamodb-local -jar DynamoDBLocal.jar -inMemory -sharedDb
+
+### 2. Para criar tabela no DynamoDB  
+aws dynamodb create-table --cli-input-json file://createPaymentTable.json --endpoint-url http://localhost:8000
