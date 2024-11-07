@@ -1,4 +1,4 @@
-package com.galega.payment.infrastructure.adapters.output.aws;
+package com.galega.payment.infrastructure.modules.aws;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

@@ -2,75 +2,46 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: spring-rest-api
+  name: galega-ms-payment
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-internal: "true"  # Load Balancer Interno
     service.beta.kubernetes.io/aws-load-balancer-type: "nlb"       # Network Load Balancer
     service.beta.kubernetes.io/aws-load-balancer-scheme: "internal" # (Opcional) Especifica que o LB é interno
   labels:
-    name: spring-rest-api
+    name: galega-ms-payment
 spec:
   type: LoadBalancer
   ports:
     - name: web
-      port: 8080        # Porta que será exposta
-      targetPort: 8080  # Porta no container que receberá o tráfego
+      port: 9090        # Porta que será exposta
+      targetPort: 9090  # Porta no container que receberá o tráfego
   selector:
-    app: spring-rest-api  # Label selector para encontrar os pods corretos
+    app: galega-ms-payment # Label selector para encontrar os pods corretos
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: spring-rest-api
+  name: galega-ms-payment
 spec:
   selector:
     matchLabels:
-      app: spring-rest-api
+      app: galega-ms-payment
   replicas: 1
   template:
     metadata:
       labels:
-        app: spring-rest-api
+        app: galega-ms-payment
     spec:
       containers:
-        - name: spring-rest-api
-          image: 793862496606.dkr.ecr.us-east-1.amazonaws.com/tech-challenge-fiap:latest
+        - name: galega-ms-payment
+          image: 793862496606.dkr.ecr.us-east-1.amazonaws.com/tgalega-ms-payment:latest
           ports:
             - containerPort: 8080
 
           # Setting Enviornmental Variables
           env:
             # Setting Database host address from configMap
-            - name: DATABASE_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: postgres-conf
-                  key: host
-
-            - name: DATABASE_NAME
-              valueFrom:
-                configMapKeyRef:
-                  name: postgres-conf
-                  key: name
-
-            # Setting Database name from configMap
-            - name: SPRING_DATASOURCE_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-credentials
-                  key: postgres_user
-
-            # Setting Database username from Secret
-            - name: SPRING_DATASOURCE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-credentials
-                  key: postgres_password
-
-            - name: SPRING_DATASOURCE_DRIVER-CLASS-NAME
-              value: "org.postgresql.Driver"
-
             - name: MERCADOPAGO_ACCESS_KEY
               valueFrom:
                 configMapKeyRef:
@@ -82,6 +53,30 @@ spec:
                 configMapKeyRef:
                   name: mercadopago-credentials
                   key: public_key
+
+            - name: AWS_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: aws-config
+                  key: aws_region
+
+            - name: AWS_ACCESS_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: aws-config
+                  key: aws_access_key
+
+            - name: AWS_SECRET_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: aws-config
+                  key: aws_secret_key
+
+            - name: AWS_SQS_QUEUE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: aws-config
+                  key: aws_sqs_queue_url
 
             - name: LOGGING_LEVEL_ORG_FLYWAYDB
               value: DEBUG
