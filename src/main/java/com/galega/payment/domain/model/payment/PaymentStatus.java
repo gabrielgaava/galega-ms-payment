@@ -1,4 +1,4 @@
-package com.galega.payment.domain.model;
+package com.galega.payment.domain.model.payment;
 
 public enum PaymentStatus {
 

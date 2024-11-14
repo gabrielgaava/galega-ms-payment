@@ -1,7 +1,7 @@
 package com.galega.payment.infrastructure.adapters.output.repository.dynamodb;
 
 import com.galega.payment.application.ports.output.PaymentRepositoryPort;
-import com.galega.payment.domain.model.Payment;
+import com.galega.payment.domain.model.payment.Payment;
 import com.galega.payment.infrastructure.adapters.output.repository.dynamodb.mapper.DynamoPaymentMapper;
 import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;

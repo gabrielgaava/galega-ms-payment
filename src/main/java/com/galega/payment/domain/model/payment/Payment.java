@@ -1,4 +1,4 @@
-package com.galega.payment.domain.model;
+package com.galega.payment.domain.model.payment;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

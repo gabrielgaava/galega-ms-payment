@@ -9,7 +9,9 @@ import org.springframework.context.annotation.ComponentScan;
 		"com.galega.payment.domain",
 		"com.galega.payment.application",
 		"com.galega.payment.domain",
-		"com.galega.payment.infrastructure"
+		"com.galega.payment.infrastructure",
+		"com.galega.payment.infrastructure.modules.aws",
+		"com.galega.payment.infrastructure.modules.spring"
 })
 public class PaymentApplication {
 

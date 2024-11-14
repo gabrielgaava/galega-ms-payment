@@ -26,7 +26,6 @@ public class AwsDynamoDbConfig {
   public DynamoDbClient dynamoDbClient() {
 
     return DynamoDbClient.builder()
-      .endpointOverride(URI.create("http://localhost:8000"))
       .region(Region.of(awsRegion))
       .credentialsProvider(awsCredentialsProvider)
       .build();

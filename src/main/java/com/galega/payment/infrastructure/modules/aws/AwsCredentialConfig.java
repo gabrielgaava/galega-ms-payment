@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 
 @Configuration
@@ -16,10 +17,13 @@ public class AwsCredentialConfig {
   @Value("${aws.secret.key}")
   private String secretKey;
 
+  @Value("${aws.session.token}")
+  private String sessionToken;
+
   @Bean
   public AwsCredentialsProvider awsCredentialsProvider() {
-    return StaticCredentialsProvider.create(
-        AwsBasicCredentials.create(accessKey, secretKey));
+    AwsSessionCredentials awsSessionCredentials = AwsSessionCredentials.create(accessKey, secretKey, sessionToken);
+    return StaticCredentialsProvider.create(awsSessionCredentials);
   }
 
 }

@@ -1,7 +1,7 @@
 package com.galega.payment.application.ports.input;
 
 import com.galega.payment.domain.exception.PaymentNotFound;
-import com.galega.payment.domain.model.Payment;
+import com.galega.payment.domain.model.payment.Payment;
 
 public interface GetPaymentUseCase {
 

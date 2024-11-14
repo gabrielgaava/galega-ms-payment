@@ -2,7 +2,7 @@ package com.galega.payment.infrastructure.adapters.output.repository.dynamodb.ma
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.galega.payment.domain.model.Payment;
+import com.galega.payment.domain.model.payment.Payment;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.math.BigDecimal;
