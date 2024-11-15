@@ -125,6 +125,7 @@ class PaymentServiceTest {
 
     when(paymentRepositoryPort.findBy("externalId", payment.getExternalId())).thenReturn(payment);
     when(paymentGatewayPort.fakeHandlePayment(payment)).thenReturn(updatedPayment);
+    when(paymentRepositoryPort.createOrUpdate(any(Payment.class))).thenReturn(updatedPayment);
 
     // Act
     Payment result = paymentService.updatePaymentStatus(payment.getExternalId(), true);
@@ -144,6 +145,7 @@ class PaymentServiceTest {
 
     when(paymentRepositoryPort.findBy("externalId", payment.getExternalId())).thenReturn(payment);
     when(paymentGatewayPort.handlePaymentUpdate(payment)).thenReturn(updatedPayment);
+    when(paymentRepositoryPort.createOrUpdate(any(Payment.class))).thenReturn(updatedPayment);
 
     // Act
     Payment result = paymentService.updatePaymentStatus(payment.getExternalId(), false);

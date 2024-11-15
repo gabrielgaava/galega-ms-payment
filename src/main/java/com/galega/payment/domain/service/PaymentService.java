@@ -11,12 +11,6 @@ import com.galega.payment.domain.model.customer.Customer;
 import com.galega.payment.domain.model.order.Order;
 import com.galega.payment.domain.model.payment.CheckoutMessage;
 import com.galega.payment.domain.model.payment.Payment;
-import com.galega.payment.domain.model.payment.PaymentStatus;
-import com.galega.payment.infrastructure.adapters.output.repository.dynamodb.PaymentDynamoAdapter;
-import com.galega.payment.infrastructure.adapters.output.rest.CustomerApiAdapter;
-import com.galega.payment.infrastructure.adapters.output.rest.MercadoPagoAdapter;
-
-import java.math.BigDecimal;
 import java.util.List;
 
 public class PaymentService implements CreatePaymentUseCase, GetPaymentUseCase, UpdatePaymentStatusUseCase {
@@ -56,15 +50,17 @@ public class PaymentService implements CreatePaymentUseCase, GetPaymentUseCase, 
     }
 
     if(isFake) {
-      return paymentGatewayPort.fakeHandlePayment(storedPayment);
+      Payment updatedPayment = paymentGatewayPort.fakeHandlePayment(storedPayment);
+      return paymentRepositoryPort.createOrUpdate(updatedPayment);
     }
 
-    return paymentGatewayPort.handlePaymentUpdate(storedPayment);
+    Payment updatedPayment = paymentGatewayPort.handlePaymentUpdate(storedPayment);
+    return paymentRepositoryPort.createOrUpdate(updatedPayment);
   }
 
   @Override
   public Payment getByPaymentId(String id) {
-    return null;
+    return paymentRepositoryPort.findBy("id", id);
   }
 
   @Override

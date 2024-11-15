@@ -20,7 +20,7 @@ public class CustomerApiAdapter implements CustomerPort {
   @Override
   public Customer getCustomerById(String id) {
 
-    if(isApiMocked) return this.mockCustomer();
+    if(Boolean.TRUE.equals(isApiMocked)) return this.mockCustomer();
 
     WebClient webClient = WebClient.builder()
         .baseUrl(hostApiUrl)

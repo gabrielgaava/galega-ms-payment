@@ -17,6 +17,7 @@ import java.util.Map;
 public class PaymentDynamoAdapter implements PaymentRepositoryPort {
 
   private final String TABLE_NAME = "Payment";
+  private final String INDEX_EXTERNAL_ID = "externalId-index";
 
   private final DynamoDbClient dynamoDbClient;
 
@@ -71,11 +72,24 @@ public class PaymentDynamoAdapter implements PaymentRepositoryPort {
     Map<String, AttributeValue> keyCondition  = new HashMap<>();
     keyCondition .put(expression, AttributeValue.builder().s(value).build());
 
-    QueryRequest queryRequest = QueryRequest .builder()
-        .tableName(TABLE_NAME)
-        .keyConditionExpression(conditionExpression)
-        .expressionAttributeValues(keyCondition)
-        .build();
+    QueryRequest queryRequest;
+
+    if(key.equals("externalId")) {
+      queryRequest = QueryRequest.builder()
+          .tableName(TABLE_NAME)
+          .indexName(INDEX_EXTERNAL_ID)
+          .keyConditionExpression(conditionExpression)
+          .expressionAttributeValues(keyCondition)
+          .build();
+    }
+
+    else {
+      queryRequest = QueryRequest.builder()
+          .tableName(TABLE_NAME)
+          .keyConditionExpression(conditionExpression)
+          .expressionAttributeValues(keyCondition)
+          .build();
+    }
 
     try {
       QueryResponse response = this.dynamoDbClient.query(queryRequest);

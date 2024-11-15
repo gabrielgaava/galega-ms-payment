@@ -20,4 +20,13 @@ resource "aws_dynamodb_table" "payment" {
     name = "externalId"
     type = "S"
   }
+
+  # Definindo o índice global secundário (GSI) no campo externalId
+  global_secondary_index {
+    name               = "externalId-index"
+    hash_key           = "externalId"    # Usando 'externalId' como chave de hash do GSI
+    projection_type    = "ALL"            # Projeção de todos os atributos (pode ser "KEYS_ONLY" ou "INCLUDE")
+    read_capacity      = 5
+    write_capacity     = 5
+  }
 }

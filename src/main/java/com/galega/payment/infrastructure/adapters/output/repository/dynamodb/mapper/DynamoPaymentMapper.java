@@ -6,6 +6,7 @@ import com.galega.payment.domain.model.payment.Payment;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -46,7 +47,7 @@ public abstract class DynamoPaymentMapper {
     payment.setStatus(paymentMap.get("status").s());
 
     if(paymentMap.get("payedAt") != null) {
-      payment.setStatus(paymentMap.get("payedAt").s());
+      payment.setPayedAt(LocalDateTime.parse(paymentMap.get("payedAt").s()));
     }
 
     if(paymentMap.get("transactionData") != null) {

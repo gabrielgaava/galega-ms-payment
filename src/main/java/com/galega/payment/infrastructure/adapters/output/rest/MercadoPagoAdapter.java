@@ -70,7 +70,7 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
       payment.setExternalId(String.valueOf(response.getId()));
       payment.setStatus(PaymentStatus.PENDING.toString());
       payment.setAmount(new BigDecimal(checkoutMessage.getOrderAmount()));
-      payment.setPayedAt(LocalDateTime.now());
+      payment.setPayedAt(null);
       payment.setOrderId(UUID.fromString(checkoutMessage.getOrderId()));
       payment.setTransactionData(response.getPointOfInteraction().getTransactionData());
 
