@@ -1,5 +1,6 @@
 plugins {
 	id 'java'
+	id 'jacoco'
 	id 'org.springframework.boot' version '3.2.5'
 	id 'io.spring.dependency-management' version '1.1.4'
 	id "io.swagger.core.v3.swagger-gradle-plugin" version "2.2.21"
@@ -10,6 +11,10 @@ version = '0.0.1-SNAPSHOT'
 
 java {
 	sourceCompatibility = '21'
+}
+
+jacoco {
+	toolVersion = "0.8.10" // Use a última versão estável
 }
 
 configurations {
@@ -35,6 +40,26 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+tasks.test {
+	useJUnitPlatform() // Certifique-se de que está usando o JUnit 5 (ou ajuste para sua versão)
+	finalizedBy(tasks.jacocoTestReport) // Garante que o relatório seja gerado após os testes
+}
+
+tasks.jacocoTestReport {
+	dependsOn(tasks.test) // Garante que os testes sejam executados antes do relatório
+	reports {
+		xml.required.set(true) // Necessário para integração com o SonarQube/SonarCloud
+		html.required.set(true) // Opcional, útil para visualizar o relatório localmente
+	}
+}
+
+tasks.jacocoTestCoverageVerification {
+	dependsOn(tasks.jacocoTestReport)
+	violationRules {
+		rule {
+			limit {
+				minimum = 0.80 // Configura a cobertura mínima (80% neste caso)
+			}
+		}
+	}
 }

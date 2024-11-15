@@ -28,6 +28,13 @@ public class MercadoPagoNotificationsController {
     this.paymentService = paymentService;
   }
 
+  @Operation(
+      summary = "Weebhook for mercado pago notifications. The notification have a topic, that describe the action itself " +
+          "and a ID, refering to the payment that suffered changes",
+      parameters = {
+          @Parameter(name = "topic", schema = @Schema(implementation = String.class)),
+          @Parameter(name = "id", schema = @Schema(implementation = String.class)),
+      })
   @PostMapping
   public ResponseEntity<?> instantPaymentNotification(@RequestParam String topic, @RequestParam String id)  {
 
@@ -46,11 +53,9 @@ public class MercadoPagoNotificationsController {
   }
 
   @Operation(
-      summary = "Simulate the webhook integration, when 'approve' is true, simulates the success of the payment",
-      parameters = {
-          @Parameter(name = "approve", schema = @Schema(implementation = Boolean.class)),
-          @Parameter(name = "id", schema = @Schema(implementation = String.class)),
-      })
+      summary = "Simulate the webhook integration, faking the success of the payment",
+      parameters = { @Parameter(name = "id", schema = @Schema(implementation = String.class)) }
+  )
   @PostMapping("/fake")
   public ResponseEntity<?> fakePaymentNotification(@RequestParam String id) throws PaymentErrorException {
 

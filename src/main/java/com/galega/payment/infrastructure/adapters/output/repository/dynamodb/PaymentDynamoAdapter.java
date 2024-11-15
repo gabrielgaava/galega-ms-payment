@@ -1,6 +1,7 @@
 package com.galega.payment.infrastructure.adapters.output.repository.dynamodb;
 
 import com.galega.payment.application.ports.output.PaymentRepositoryPort;
+import com.galega.payment.domain.exception.PaymentErrorException;
 import com.galega.payment.domain.model.payment.Payment;
 import com.galega.payment.infrastructure.adapters.output.repository.dynamodb.mapper.DynamoPaymentMapper;
 import org.springframework.stereotype.Repository;
@@ -30,7 +31,7 @@ public class PaymentDynamoAdapter implements PaymentRepositoryPort {
    * @return The stored Payment data
    * **/
   @Override
-  public Payment createOrUpdate(Payment payment) {
+  public Payment createOrUpdate(Payment payment) throws PaymentErrorException {
 
     Map<String, AttributeValue> paymentItem = DynamoPaymentMapper.paymentToMap(payment);
 
@@ -49,7 +50,7 @@ public class PaymentDynamoAdapter implements PaymentRepositoryPort {
 
     catch (DynamoDbException e) {
       System.out.println(e.getMessage());
-      return null;
+      throw new PaymentErrorException(payment.getExternalId(), "MercadoPago");
     }
 
 

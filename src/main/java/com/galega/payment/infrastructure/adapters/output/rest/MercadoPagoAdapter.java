@@ -139,7 +139,6 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
     return payment;
   }
 
-
   /**
    * Build header object for request
    * @param message: The message coming from queue service requesting the payment

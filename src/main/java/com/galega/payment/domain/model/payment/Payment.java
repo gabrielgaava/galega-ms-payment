@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public class Payment {
+public class  Payment {
   private LocalDateTime payedAt;
   private BigDecimal amount;
   private String gateway;
