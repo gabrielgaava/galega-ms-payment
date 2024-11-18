@@ -10,6 +10,7 @@ import com.galega.payment.domain.exception.PaymentErrorException;
 import com.galega.payment.domain.model.payment.CheckoutMessage;
 import com.galega.payment.domain.model.payment.Payment;
 import com.galega.payment.domain.model.payment.PaymentStatus;
+import com.galega.payment.domain.model.payment.PixTransactionalData;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.common.IdentificationRequest;
 import com.mercadopago.client.payment.PaymentClient;
@@ -18,6 +19,7 @@ import com.mercadopago.client.payment.PaymentPayerRequest;
 import com.mercadopago.core.MPRequestOptions;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.payment.PaymentTransactionData;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
@@ -72,8 +74,10 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
       payment.setAmount(new BigDecimal(checkoutMessage.getOrderAmount()));
       payment.setPayedAt(null);
       payment.setOrderId(UUID.fromString(checkoutMessage.getOrderId()));
-      payment.setTransactionData(response.getPointOfInteraction().getTransactionData());
 
+      PixTransactionalData transactionalData = getPixTransactionalData(response);
+
+      payment.setTransactionData(transactionalData);
       return payment;
     }
 
@@ -88,6 +92,18 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
       throw new PaymentErrorException(checkoutMessage.getOrderId(), gatewayName);
     }
 
+  }
+
+  private static PixTransactionalData getPixTransactionalData(com.mercadopago.resources.payment.Payment response) {
+    PixTransactionalData transactionalData = new PixTransactionalData();
+    PaymentTransactionData responseData = response.getPointOfInteraction().getTransactionData();
+
+    transactionalData.setTransactionId(responseData.getTransactionId());
+    transactionalData.setPaymentLink(responseData.getTicketUrl());
+    transactionalData.setQrCode(responseData.getQrCode());
+    transactionalData.setQrCodeBase64(responseData.getQrCodeBase64());
+    transactionalData.setBillingDate(responseData.getBillingDate());
+    return transactionalData;
   }
 
   /**

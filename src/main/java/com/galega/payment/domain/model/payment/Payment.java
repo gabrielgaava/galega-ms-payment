@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public class  Payment {
+public class Payment {
   private LocalDateTime payedAt;
   private BigDecimal amount;
   private String gateway;
@@ -12,7 +12,7 @@ public class  Payment {
   private String status;
   private UUID id;
   private UUID orderId;
-  private Object transactionData;
+  private PixTransactionalData transactionData;
 
   public Payment() {}
 
@@ -76,7 +76,7 @@ public class  Payment {
     return transactionData;
   }
 
-  public void setTransactionData(Object transactionData) {
+  public void setTransactionData(PixTransactionalData transactionData) {
     this.transactionData = transactionData;
   }
 }

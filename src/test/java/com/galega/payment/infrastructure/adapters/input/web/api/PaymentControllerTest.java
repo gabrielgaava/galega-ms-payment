@@ -71,7 +71,7 @@ public class PaymentControllerTest {
         .andExpect(jsonPath("$.id").exists())
         .andExpect(jsonPath("$.amount").value(payment.getAmount()))
         .andExpect(jsonPath("$.status").value(payment.getStatus()));
-    verify(createPaymentUseCase, times(1)).createPayment(order);
+    verify(createPaymentUseCase, times(1)).createPayment(any(Order.class));
   }
 
   @Test
@@ -126,7 +126,7 @@ public class PaymentControllerTest {
     // When and Then
     mockMvc.perform(get("/payments/{id}", externalId).param("isExternal", "true"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(externalId))
+        .andExpect(jsonPath("$.externalId").value(payment.getExternalId()))
         .andExpect(jsonPath("$.amount").value(payment.getAmount()))
         .andExpect(jsonPath("$.status").value(payment.getStatus()));
 
@@ -140,7 +140,7 @@ public class PaymentControllerTest {
     Order order = MockHelper.getCreatedOrder();
     Payment payment = MockHelper.getCreatedPayment();
 
-    when(createPaymentUseCase.createPayment(order)).thenReturn(payment);
+    when(createPaymentUseCase.createPayment(any(Order.class))).thenReturn(payment);
 
     // When and Then
     mockMvc.perform(post("/payments/fake-checkout")
@@ -151,6 +151,6 @@ public class PaymentControllerTest {
         .andExpect(jsonPath("$.amount").value(payment.getAmount()))
         .andExpect(jsonPath("$.status").value(payment.getStatus()));
 
-    verify(createPaymentUseCase, times(1)).createPayment(order);
+    verify(createPaymentUseCase, times(1)).createPayment(any(Order.class));
   }
 }

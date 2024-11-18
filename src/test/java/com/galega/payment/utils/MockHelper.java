@@ -7,6 +7,7 @@ import com.galega.payment.domain.model.order.Order;
 import com.galega.payment.domain.model.order.OrderStatus;
 import com.galega.payment.domain.model.payment.Payment;
 import com.galega.payment.domain.model.payment.PaymentStatus;
+import com.galega.payment.domain.model.payment.PixTransactionalData;
 import okhttp3.mockwebserver.MockResponse;
 
 import java.math.BigDecimal;
@@ -37,8 +38,8 @@ public abstract class MockHelper {
     return customer;
   }
 
-  public static Object getFakeTransactionData() {
-    return new Object();
+  public static PixTransactionalData getFakeTransactionData() {
+    return new PixTransactionalData();
   }
 
   public static Payment getCreatedPayment() {
