@@ -1,10 +1,13 @@
 package com.galega.payment.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.galega.payment.domain.model.customer.Customer;
 import com.galega.payment.domain.model.order.Order;
 import com.galega.payment.domain.model.order.OrderStatus;
 import com.galega.payment.domain.model.payment.Payment;
 import com.galega.payment.domain.model.payment.PaymentStatus;
+import okhttp3.mockwebserver.MockResponse;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -58,5 +61,15 @@ public abstract class MockHelper {
     payment.setStatus(PaymentStatus.APPROVED.toString());
     payment.setPayedAt(LocalDateTime.now());
     return payment;
+  }
+
+  public static MockResponse getMockJsonResponse(Object body) throws JsonProcessingException {
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonBody = mapper.writeValueAsString(body);
+
+    return new MockResponse()
+        .setBody(jsonBody)
+        .addHeader("Content-Type", "application/json");
+
   }
 }

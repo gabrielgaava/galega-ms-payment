@@ -35,9 +35,12 @@ dependencies {
 	implementation 'com.mercadopago:sdk-java:2.1.29'
 	implementation 'software.amazon.awssdk:sqs:2.29.6'
 	implementation 'software.amazon.awssdk:dynamodb:2.29.6'
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'com.squareup.okhttp3:mockwebserver:4.11.0'
 }
 
 tasks.test {

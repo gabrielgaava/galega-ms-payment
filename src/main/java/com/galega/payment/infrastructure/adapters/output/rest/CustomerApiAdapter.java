@@ -38,7 +38,6 @@ public class CustomerApiAdapter implements CustomerPort {
     return response.block();
   }
 
-
   private Customer mockCustomer() {
 
     Customer customer = new Customer();

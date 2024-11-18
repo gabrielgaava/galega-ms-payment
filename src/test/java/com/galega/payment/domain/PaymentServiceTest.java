@@ -8,14 +8,12 @@ import com.galega.payment.domain.model.customer.Customer;
 import com.galega.payment.domain.model.order.Order;
 import com.galega.payment.domain.model.payment.CheckoutMessage;
 import com.galega.payment.domain.model.payment.Payment;
-import com.galega.payment.domain.model.payment.PaymentStatus;
 import com.galega.payment.domain.service.PaymentService;
 import com.galega.payment.utils.MockHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
