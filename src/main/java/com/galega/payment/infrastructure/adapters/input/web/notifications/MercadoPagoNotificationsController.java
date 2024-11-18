@@ -1,6 +1,7 @@
 package com.galega.payment.infrastructure.adapters.input.web.notifications;
 
 import com.galega.payment.application.dto.PaymentWebhookDTO;
+import com.galega.payment.application.ports.input.UpdatePaymentStatusUseCase;
 import com.galega.payment.application.ports.output.PaymentGatewayPort;
 import com.galega.payment.domain.exception.PaymentErrorException;
 import com.galega.payment.domain.model.payment.Payment;
@@ -22,10 +23,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/notifications/mercadopago")
 public class MercadoPagoNotificationsController {
 
-  private PaymentService paymentService;
+  private final UpdatePaymentStatusUseCase updatePaymentStatus;
 
-  public MercadoPagoNotificationsController(PaymentService paymentService) {
-    this.paymentService = paymentService;
+  public MercadoPagoNotificationsController(UpdatePaymentStatusUseCase paymentService) {
+    this.updatePaymentStatus = paymentService;
   }
 
   @Operation(
@@ -40,7 +41,7 @@ public class MercadoPagoNotificationsController {
 
     if(topic.equals("payment")){
       try {
-        paymentService.updatePaymentStatus(id, Boolean.FALSE);
+        updatePaymentStatus.updatePaymentStatus(id, Boolean.FALSE);
       }
       catch (PaymentErrorException e ) {
         // Mercado Pago Service unavailable, or database error, should do a internal retry
@@ -59,7 +60,7 @@ public class MercadoPagoNotificationsController {
   @PostMapping("/fake")
   public ResponseEntity<?> fakePaymentNotification(@RequestParam String id) throws PaymentErrorException {
 
-    paymentService.updatePaymentStatus(id, Boolean.TRUE);
+    updatePaymentStatus.updatePaymentStatus(id, Boolean.TRUE);
     return ResponseEntity.ok("Ok");
 
   }
