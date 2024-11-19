@@ -12,7 +12,7 @@ public class Payment {
   private String status;
   private UUID id;
   private UUID orderId;
-  private Object transactionData;
+  private PixTransactionalData transactionData;
 
   public Payment() {}
 
@@ -72,11 +72,13 @@ public class Payment {
     this.orderId = orderId;
   }
 
-  public Object getTransactionData() {
-    return transactionData;
+  public PixTransactionalData getTransactionData() {
+    return this.transactionData;
   }
 
-  public void setTransactionData(Object transactionData) {
+  public void setTransactionData(PixTransactionalData transactionData) {
     this.transactionData = transactionData;
   }
+
+
 }

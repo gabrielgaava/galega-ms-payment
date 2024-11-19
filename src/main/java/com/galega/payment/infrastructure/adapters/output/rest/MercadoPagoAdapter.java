@@ -10,6 +10,7 @@ import com.galega.payment.domain.exception.PaymentErrorException;
 import com.galega.payment.domain.model.payment.CheckoutMessage;
 import com.galega.payment.domain.model.payment.Payment;
 import com.galega.payment.domain.model.payment.PaymentStatus;
+import com.galega.payment.domain.model.payment.PixTransactionalData;
 import com.mercadopago.MercadoPagoConfig;
 import com.mercadopago.client.common.IdentificationRequest;
 import com.mercadopago.client.payment.PaymentClient;
@@ -18,6 +19,7 @@ import com.mercadopago.client.payment.PaymentPayerRequest;
 import com.mercadopago.core.MPRequestOptions;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.payment.PaymentTransactionData;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
@@ -39,7 +41,16 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
   @Value("${mercadopago.debug.log}")
   private Boolean isDebugOn;
 
+  private final PaymentClient mpClient;
   private final String gatewayName = "MercadoPago";
+
+  public MercadoPagoAdapter(PaymentClient paymentClient) {
+    this.mpClient = paymentClient;
+  }
+
+  public MercadoPagoAdapter() {
+    this.mpClient = new PaymentClient();
+  }
 
   /**
    * This method request a Payment to Mercado Pago and store the information on database
@@ -50,7 +61,6 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
   public Payment requestPayment(CheckoutMessage checkoutMessage) throws PaymentErrorException {
 
     MercadoPagoConfig.setAccessToken(accessKey);
-    PaymentClient mpClient = new PaymentClient();
 
     MPRequestOptions requestHeaders = this.getMPRequestOptions(checkoutMessage);
     PaymentCreateRequest request = this.createPaymentRequest(checkoutMessage);
@@ -60,20 +70,18 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
     try {
       var response = mpClient.create(request, requestHeaders);
 
-      if(response == null){
-        throw new PaymentErrorException(checkoutMessage.getOrderId(), gatewayName);
-      }
-
       Payment payment = new Payment();
       payment.setGateway(gatewayName);
       payment.setId(UUID.randomUUID());
       payment.setExternalId(String.valueOf(response.getId()));
       payment.setStatus(PaymentStatus.PENDING.toString());
       payment.setAmount(new BigDecimal(checkoutMessage.getOrderAmount()));
-      payment.setPayedAt(LocalDateTime.now());
+      payment.setPayedAt(null);
       payment.setOrderId(UUID.fromString(checkoutMessage.getOrderId()));
-      payment.setTransactionData(response.getPointOfInteraction().getTransactionData());
 
+      PixTransactionalData transactionalData = getPixTransactionalData(response);
+
+      payment.setTransactionData(transactionalData);
       return payment;
     }
 
@@ -99,7 +107,6 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
   public Payment handlePaymentUpdate(Payment payment) throws PaymentErrorException {
 
     MercadoPagoConfig.setAccessToken(accessKey);
-    PaymentClient mpClient = new PaymentClient();
 
     try {
       var response = mpClient.get(Long.valueOf(payment.getExternalId()));
@@ -132,13 +139,17 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
     }
   }
 
+  /**
+   * This method simulate the payment update from MercadoPago for test propose
+   * @param payment: The internal payment tha had some change by notification
+   * @return The payment entity updated
+   * **/
   @Override
   public Payment fakeHandlePayment(Payment payment) {
     payment.setStatus(PaymentStatus.APPROVED.toString());
     payment.setPayedAt(LocalDateTime.now());
     return payment;
   }
-
 
   /**
    * Build header object for request
@@ -191,7 +202,7 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
    * @param request: The built object for body request to mercado pago API
    * **/
   private void debugMercadoPago(MPRequestOptions requestHeaders, PaymentCreateRequest request) {
-    if(isDebugOn) {
+    if(Boolean.TRUE.equals(isDebugOn)) {
       try {
         ObjectMapper mapper = Jackson2ObjectMapperBuilder.json()
             .modules(new JavaTimeModule())
@@ -206,6 +217,23 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
         System.out.println(e.getMessage());
       }
     }
+  }
+
+  /**
+   * Create a PixTransactionalData based on MercadoPago response
+   * @param response The response from MercadoPago API after create a Payment
+   * @return The PixTransactionalData object with transfer information in the response
+   **/
+  private static PixTransactionalData getPixTransactionalData(com.mercadopago.resources.payment.Payment response) {
+    PixTransactionalData transactionalData = new PixTransactionalData();
+    PaymentTransactionData responseData = response.getPointOfInteraction().getTransactionData();
+
+    transactionalData.setTransactionId(responseData.getTransactionId());
+    transactionalData.setPaymentLink(responseData.getTicketUrl());
+    transactionalData.setQrCode(responseData.getQrCode());
+    transactionalData.setQrCodeBase64(responseData.getQrCodeBase64());
+    transactionalData.setBillingDate(responseData.getBillingDate());
+    return transactionalData;
   }
 
 }

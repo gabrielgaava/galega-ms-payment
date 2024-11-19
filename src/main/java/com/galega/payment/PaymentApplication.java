@@ -8,8 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 @ComponentScan(basePackages = {
 		"com.galega.payment.domain",
 		"com.galega.payment.application",
-		"com.galega.payment.domain",
-		"com.galega.payment.infrastructure",
+		"com.galega.payment.infrastructure.adapters",
 		"com.galega.payment.infrastructure.modules.aws",
 		"com.galega.payment.infrastructure.modules.spring"
 })

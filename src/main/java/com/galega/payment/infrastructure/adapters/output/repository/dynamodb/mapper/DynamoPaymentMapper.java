@@ -3,9 +3,11 @@ package com.galega.payment.infrastructure.adapters.output.repository.dynamodb.ma
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.galega.payment.domain.model.payment.Payment;
+import com.galega.payment.domain.model.payment.PixTransactionalData;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -46,7 +48,7 @@ public abstract class DynamoPaymentMapper {
     payment.setStatus(paymentMap.get("status").s());
 
     if(paymentMap.get("payedAt") != null) {
-      payment.setStatus(paymentMap.get("payedAt").s());
+      payment.setPayedAt(LocalDateTime.parse(paymentMap.get("payedAt").s()));
     }
 
     if(paymentMap.get("transactionData") != null) {
@@ -54,7 +56,7 @@ public abstract class DynamoPaymentMapper {
       ObjectMapper mapper = new ObjectMapper();
 
       try {
-        Object data = mapper.readValue(json, Object.class);
+        PixTransactionalData data = mapper.readValue(json, PixTransactionalData.class);
         payment.setTransactionData(data);
       }
 

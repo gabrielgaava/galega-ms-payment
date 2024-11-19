@@ -1,12 +1,7 @@
 package com.galega.payment.infrastructure.adapters.input.web.notifications;
 
-import com.galega.payment.application.dto.PaymentWebhookDTO;
-import com.galega.payment.application.ports.output.PaymentGatewayPort;
+import com.galega.payment.application.ports.input.UpdatePaymentStatusUseCase;
 import com.galega.payment.domain.exception.PaymentErrorException;
-import com.galega.payment.domain.model.payment.Payment;
-import com.galega.payment.domain.service.PaymentService;
-import com.mercadopago.exceptions.MPApiException;
-import com.mercadopago.exceptions.MPException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,18 +17,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/notifications/mercadopago")
 public class MercadoPagoNotificationsController {
 
-  private PaymentService paymentService;
+  private final UpdatePaymentStatusUseCase updatePaymentStatus;
 
-  public MercadoPagoNotificationsController(PaymentService paymentService) {
-    this.paymentService = paymentService;
+  public MercadoPagoNotificationsController(UpdatePaymentStatusUseCase paymentService) {
+    this.updatePaymentStatus = paymentService;
   }
 
+  @Operation(
+      summary = "Weebhook for mercado pago notifications. The notification have a topic, that describe the action itself " +
+          "and a ID, refering to the payment that suffered changes",
+      parameters = {
+          @Parameter(name = "topic", schema = @Schema(implementation = String.class)),
+          @Parameter(name = "id", schema = @Schema(implementation = String.class)),
+      })
   @PostMapping
   public ResponseEntity<?> instantPaymentNotification(@RequestParam String topic, @RequestParam String id)  {
 
     if(topic.equals("payment")){
       try {
-        paymentService.updatePaymentStatus(id, Boolean.FALSE);
+        updatePaymentStatus.updatePaymentStatus(id, Boolean.FALSE);
       }
       catch (PaymentErrorException e ) {
         // Mercado Pago Service unavailable, or database error, should do a internal retry
@@ -46,15 +48,13 @@ public class MercadoPagoNotificationsController {
   }
 
   @Operation(
-      summary = "Simulate the webhook integration, when 'approve' is true, simulates the success of the payment",
-      parameters = {
-          @Parameter(name = "approve", schema = @Schema(implementation = Boolean.class)),
-          @Parameter(name = "id", schema = @Schema(implementation = String.class)),
-      })
+      summary = "Simulate the webhook integration, faking the success of the payment",
+      parameters = { @Parameter(name = "id", schema = @Schema(implementation = String.class)) }
+  )
   @PostMapping("/fake")
   public ResponseEntity<?> fakePaymentNotification(@RequestParam String id) throws PaymentErrorException {
 
-    paymentService.updatePaymentStatus(id, Boolean.TRUE);
+    updatePaymentStatus.updatePaymentStatus(id, Boolean.TRUE);
     return ResponseEntity.ok("Ok");
 
   }

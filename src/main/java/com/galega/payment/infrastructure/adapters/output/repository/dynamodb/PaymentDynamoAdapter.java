@@ -1,6 +1,7 @@
 package com.galega.payment.infrastructure.adapters.output.repository.dynamodb;
 
 import com.galega.payment.application.ports.output.PaymentRepositoryPort;
+import com.galega.payment.domain.exception.PaymentErrorException;
 import com.galega.payment.domain.model.payment.Payment;
 import com.galega.payment.infrastructure.adapters.output.repository.dynamodb.mapper.DynamoPaymentMapper;
 import org.springframework.stereotype.Repository;
@@ -16,6 +17,7 @@ import java.util.Map;
 public class PaymentDynamoAdapter implements PaymentRepositoryPort {
 
   private final String TABLE_NAME = "Payment";
+  private final String INDEX_EXTERNAL_ID = "externalId-index";
 
   private final DynamoDbClient dynamoDbClient;
 
@@ -30,7 +32,7 @@ public class PaymentDynamoAdapter implements PaymentRepositoryPort {
    * @return The stored Payment data
    * **/
   @Override
-  public Payment createOrUpdate(Payment payment) {
+  public Payment createOrUpdate(Payment payment) throws PaymentErrorException {
 
     Map<String, AttributeValue> paymentItem = DynamoPaymentMapper.paymentToMap(payment);
 
@@ -49,7 +51,7 @@ public class PaymentDynamoAdapter implements PaymentRepositoryPort {
 
     catch (DynamoDbException e) {
       System.out.println(e.getMessage());
-      return null;
+      throw new PaymentErrorException(payment.getExternalId(), "MercadoPago");
     }
 
 
@@ -70,11 +72,24 @@ public class PaymentDynamoAdapter implements PaymentRepositoryPort {
     Map<String, AttributeValue> keyCondition  = new HashMap<>();
     keyCondition .put(expression, AttributeValue.builder().s(value).build());
 
-    QueryRequest queryRequest = QueryRequest .builder()
-        .tableName(TABLE_NAME)
-        .keyConditionExpression(conditionExpression)
-        .expressionAttributeValues(keyCondition)
-        .build();
+    QueryRequest queryRequest;
+
+    if(key.equals("externalId")) {
+      queryRequest = QueryRequest.builder()
+          .tableName(TABLE_NAME)
+          .indexName(INDEX_EXTERNAL_ID)
+          .keyConditionExpression(conditionExpression)
+          .expressionAttributeValues(keyCondition)
+          .build();
+    }
+
+    else {
+      queryRequest = QueryRequest.builder()
+          .tableName(TABLE_NAME)
+          .keyConditionExpression(conditionExpression)
+          .expressionAttributeValues(keyCondition)
+          .build();
+    }
 
     try {
       QueryResponse response = this.dynamoDbClient.query(queryRequest);
