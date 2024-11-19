@@ -72,11 +72,13 @@ public class Payment {
     this.orderId = orderId;
   }
 
-  public Object getTransactionData() {
-    return transactionData;
+  public PixTransactionalData getTransactionData() {
+    return this.transactionData;
   }
 
   public void setTransactionData(PixTransactionalData transactionData) {
     this.transactionData = transactionData;
   }
+
+
 }

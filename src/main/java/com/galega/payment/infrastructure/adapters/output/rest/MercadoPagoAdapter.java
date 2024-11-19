@@ -41,7 +41,16 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
   @Value("${mercadopago.debug.log}")
   private Boolean isDebugOn;
 
+  private final PaymentClient mpClient;
   private final String gatewayName = "MercadoPago";
+
+  public MercadoPagoAdapter(PaymentClient paymentClient) {
+    this.mpClient = paymentClient;
+  }
+
+  public MercadoPagoAdapter() {
+    this.mpClient = new PaymentClient();
+  }
 
   /**
    * This method request a Payment to Mercado Pago and store the information on database
@@ -52,7 +61,6 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
   public Payment requestPayment(CheckoutMessage checkoutMessage) throws PaymentErrorException {
 
     MercadoPagoConfig.setAccessToken(accessKey);
-    PaymentClient mpClient = new PaymentClient();
 
     MPRequestOptions requestHeaders = this.getMPRequestOptions(checkoutMessage);
     PaymentCreateRequest request = this.createPaymentRequest(checkoutMessage);
@@ -61,10 +69,6 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
 
     try {
       var response = mpClient.create(request, requestHeaders);
-
-      if(response == null){
-        throw new PaymentErrorException(checkoutMessage.getOrderId(), gatewayName);
-      }
 
       Payment payment = new Payment();
       payment.setGateway(gatewayName);
@@ -94,18 +98,6 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
 
   }
 
-  private static PixTransactionalData getPixTransactionalData(com.mercadopago.resources.payment.Payment response) {
-    PixTransactionalData transactionalData = new PixTransactionalData();
-    PaymentTransactionData responseData = response.getPointOfInteraction().getTransactionData();
-
-    transactionalData.setTransactionId(responseData.getTransactionId());
-    transactionalData.setPaymentLink(responseData.getTicketUrl());
-    transactionalData.setQrCode(responseData.getQrCode());
-    transactionalData.setQrCodeBase64(responseData.getQrCodeBase64());
-    transactionalData.setBillingDate(responseData.getBillingDate());
-    return transactionalData;
-  }
-
   /**
    * This method get a Payment from Mercado Pago API
    * @param payment: The internal payment tha had some change by notification
@@ -115,7 +107,6 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
   public Payment handlePaymentUpdate(Payment payment) throws PaymentErrorException {
 
     MercadoPagoConfig.setAccessToken(accessKey);
-    PaymentClient mpClient = new PaymentClient();
 
     try {
       var response = mpClient.get(Long.valueOf(payment.getExternalId()));
@@ -148,6 +139,11 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
     }
   }
 
+  /**
+   * This method simulate the payment update from MercadoPago for test propose
+   * @param payment: The internal payment tha had some change by notification
+   * @return The payment entity updated
+   * **/
   @Override
   public Payment fakeHandlePayment(Payment payment) {
     payment.setStatus(PaymentStatus.APPROVED.toString());
@@ -206,7 +202,7 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
    * @param request: The built object for body request to mercado pago API
    * **/
   private void debugMercadoPago(MPRequestOptions requestHeaders, PaymentCreateRequest request) {
-    if(isDebugOn) {
+    if(Boolean.TRUE.equals(isDebugOn)) {
       try {
         ObjectMapper mapper = Jackson2ObjectMapperBuilder.json()
             .modules(new JavaTimeModule())
@@ -221,6 +217,23 @@ public class MercadoPagoAdapter implements PaymentGatewayPort {
         System.out.println(e.getMessage());
       }
     }
+  }
+
+  /**
+   * Create a PixTransactionalData based on MercadoPago response
+   * @param response The response from MercadoPago API after create a Payment
+   * @return The PixTransactionalData object with transfer information in the response
+   **/
+  private static PixTransactionalData getPixTransactionalData(com.mercadopago.resources.payment.Payment response) {
+    PixTransactionalData transactionalData = new PixTransactionalData();
+    PaymentTransactionData responseData = response.getPointOfInteraction().getTransactionData();
+
+    transactionalData.setTransactionId(responseData.getTransactionId());
+    transactionalData.setPaymentLink(responseData.getTicketUrl());
+    transactionalData.setQrCode(responseData.getQrCode());
+    transactionalData.setQrCodeBase64(responseData.getQrCodeBase64());
+    transactionalData.setBillingDate(responseData.getBillingDate());
+    return transactionalData;
   }
 
 }

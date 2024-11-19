@@ -44,7 +44,7 @@ dependencies {
 }
 
 tasks.test {
-	useJUnitPlatform() // Certifique-se de que está usando o JUnit 5 (ou ajuste para sua versão)
+	useJUnitPlatform()
 	finalizedBy(tasks.jacocoTestReport) // Garante que o relatório seja gerado após os testes
 }
 

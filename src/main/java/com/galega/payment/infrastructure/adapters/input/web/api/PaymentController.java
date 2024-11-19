@@ -4,12 +4,9 @@ import com.galega.payment.application.ports.input.CreatePaymentUseCase;
 import com.galega.payment.application.ports.input.GetPaymentUseCase;
 import com.galega.payment.domain.model.order.Order;
 import com.galega.payment.domain.model.payment.Payment;
-import com.galega.payment.domain.service.PaymentService;
-import com.galega.payment.infrastructure.adapters.output.repository.dynamodb.PaymentDynamoAdapter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import java.util.List;
 

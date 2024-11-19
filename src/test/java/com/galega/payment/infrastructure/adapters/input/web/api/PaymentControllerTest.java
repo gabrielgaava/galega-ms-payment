@@ -1,20 +1,14 @@
 package com.galega.payment.infrastructure.adapters.input.web.api;
 
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.galega.payment.application.ports.input.CreatePaymentUseCase;
 import com.galega.payment.application.ports.input.GetPaymentUseCase;
 import com.galega.payment.domain.model.order.Order;
 import com.galega.payment.domain.model.payment.Payment;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.galega.payment.domain.service.PaymentService;
 import com.galega.payment.utils.MockHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -22,12 +16,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 import java.util.Arrays;
+
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PaymentController.class)
 public class PaymentControllerTest {
@@ -131,6 +127,25 @@ public class PaymentControllerTest {
         .andExpect(jsonPath("$.status").value(payment.getStatus()));
 
     verify(getPaymentUseCase, times(1)).getByPaymentExternalId(externalId);
+  }
+
+  @Test
+  void getPayment_ShouldReturnPaymentById_WhenIsExternalIsFalse() throws Exception {
+
+    // Given
+    Payment payment = MockHelper.getCreatedPayment();
+    String id = payment.getId().toString();
+
+    when(getPaymentUseCase.getByPaymentId(id)).thenReturn(payment);
+
+    // When and Then
+    mockMvc.perform(get("/payments/{id}", id).param("isExternal", "false"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.externalId").value(payment.getExternalId()))
+        .andExpect(jsonPath("$.amount").value(payment.getAmount()))
+        .andExpect(jsonPath("$.status").value(payment.getStatus()));
+
+    verify(getPaymentUseCase, times(1)).getByPaymentId(id);
   }
 
   @Test

@@ -11,6 +11,7 @@ import com.galega.payment.domain.model.customer.Customer;
 import com.galega.payment.domain.model.order.Order;
 import com.galega.payment.domain.model.payment.CheckoutMessage;
 import com.galega.payment.domain.model.payment.Payment;
+
 import java.util.List;
 
 public class PaymentService implements CreatePaymentUseCase, GetPaymentUseCase, UpdatePaymentStatusUseCase {

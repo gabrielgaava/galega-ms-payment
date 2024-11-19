@@ -1,13 +1,7 @@
 package com.galega.payment.infrastructure.adapters.input.web.notifications;
 
-import com.galega.payment.application.dto.PaymentWebhookDTO;
 import com.galega.payment.application.ports.input.UpdatePaymentStatusUseCase;
-import com.galega.payment.application.ports.output.PaymentGatewayPort;
 import com.galega.payment.domain.exception.PaymentErrorException;
-import com.galega.payment.domain.model.payment.Payment;
-import com.galega.payment.domain.service.PaymentService;
-import com.mercadopago.exceptions.MPApiException;
-import com.mercadopago.exceptions.MPException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
