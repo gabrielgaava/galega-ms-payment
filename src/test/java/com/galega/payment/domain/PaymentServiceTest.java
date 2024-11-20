@@ -1,6 +1,7 @@
 package com.galega.payment.domain;
 
 import com.galega.payment.application.ports.output.CustomerPort;
+import com.galega.payment.application.ports.output.NotifyPaymentPort;
 import com.galega.payment.application.ports.output.PaymentGatewayPort;
 import com.galega.payment.application.ports.output.PaymentRepositoryPort;
 import com.galega.payment.domain.exception.PaymentErrorException;
@@ -26,13 +27,14 @@ class PaymentServiceTest {
   private PaymentRepositoryPort paymentRepositoryPort;
   private CustomerPort customerPort;
   private PaymentGatewayPort paymentGatewayPort;
+  private NotifyPaymentPort notifyPaymentPort;
 
   @BeforeEach
   void setUp() {
     paymentRepositoryPort = mock(PaymentRepositoryPort.class);
     customerPort = mock(CustomerPort.class);
     paymentGatewayPort = mock(PaymentGatewayPort.class);
-    paymentService = new PaymentService(paymentRepositoryPort, customerPort, paymentGatewayPort);
+    paymentService = new PaymentService(paymentRepositoryPort, customerPort, paymentGatewayPort, notifyPaymentPort);
   }
 
   @Test

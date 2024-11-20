@@ -4,6 +4,7 @@ import com.galega.payment.application.ports.input.CreatePaymentUseCase;
 import com.galega.payment.application.ports.input.GetPaymentUseCase;
 import com.galega.payment.application.ports.input.UpdatePaymentStatusUseCase;
 import com.galega.payment.application.ports.output.CustomerPort;
+import com.galega.payment.application.ports.output.NotifyPaymentPort;
 import com.galega.payment.application.ports.output.PaymentGatewayPort;
 import com.galega.payment.application.ports.output.PaymentRepositoryPort;
 import com.galega.payment.domain.exception.PaymentErrorException;
@@ -11,6 +12,7 @@ import com.galega.payment.domain.model.customer.Customer;
 import com.galega.payment.domain.model.order.Order;
 import com.galega.payment.domain.model.payment.CheckoutMessage;
 import com.galega.payment.domain.model.payment.Payment;
+import com.galega.payment.domain.model.payment.PaymentStatus;
 
 import java.util.List;
 
@@ -19,11 +21,13 @@ public class PaymentService implements CreatePaymentUseCase, GetPaymentUseCase, 
   private final PaymentRepositoryPort paymentRepositoryPort;
   private final CustomerPort customerPort;
   private final PaymentGatewayPort paymentGatewayPort;
+  private final NotifyPaymentPort notifyPaymentPort;
 
-  public PaymentService(PaymentRepositoryPort paymentRepositoryPort, CustomerPort customerPort, PaymentGatewayPort paymentGatewayPort) {
+  public PaymentService(PaymentRepositoryPort paymentRepositoryPort, CustomerPort customerPort, PaymentGatewayPort paymentGatewayPort, NotifyPaymentPort notifyPaymentPort) {
     this.paymentRepositoryPort = paymentRepositoryPort;
     this.customerPort = customerPort;
     this.paymentGatewayPort = paymentGatewayPort;
+    this.notifyPaymentPort = notifyPaymentPort;
   }
 
   @Override
@@ -52,10 +56,12 @@ public class PaymentService implements CreatePaymentUseCase, GetPaymentUseCase, 
 
     if(isFake) {
       Payment updatedPayment = paymentGatewayPort.fakeHandlePayment(storedPayment);
+      notifyPaymentPort.notifyPaymentApproved(updatedPayment);
       return paymentRepositoryPort.createOrUpdate(updatedPayment);
     }
 
     Payment updatedPayment = paymentGatewayPort.handlePaymentUpdate(storedPayment);
+    this.handlePaymentNotification(updatedPayment);
     return paymentRepositoryPort.createOrUpdate(updatedPayment);
   }
 
@@ -93,6 +99,20 @@ public class PaymentService implements CreatePaymentUseCase, GetPaymentUseCase, 
       }
 
       return checkoutMessage;
+  }
+
+  private void handlePaymentNotification(Payment payment) {
+    String status = payment.getStatus();
+
+    if(status.equals(PaymentStatus.APPROVED.toString()))
+      notifyPaymentPort.notifyPaymentApproved(payment);
+
+    if (status.equals(PaymentStatus.REFUSED.toString()))
+      notifyPaymentPort.notifyPaymentRefused(payment);
+
+    if (status.equals(PaymentStatus.CANCELLED.toString()))
+      notifyPaymentPort.notifyPaymentCanceled(payment);
+
   }
 
 }

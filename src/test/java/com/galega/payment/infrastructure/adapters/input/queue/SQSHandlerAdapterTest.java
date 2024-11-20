@@ -1,5 +1,6 @@
 package com.galega.payment.infrastructure.adapters.input.queue;
 
+import com.galega.payment.application.ports.input.CreatePaymentUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -19,11 +20,12 @@ class SQSHandlerAdapterTest {
 
   private SqsClient sqsClient;
   private SQSHandlerAdapter sqsHandlerAdapter;
+  private CreatePaymentUseCase createPaymentUseCase;
 
   @BeforeEach
   void setup() {
     sqsClient = Mockito.mock(SqsClient.class);
-    sqsHandlerAdapter = new SQSHandlerAdapter(sqsClient);
+    sqsHandlerAdapter = new SQSHandlerAdapter(sqsClient, createPaymentUseCase);
     // Define o valor da URL da fila via Reflection, já que @Value não é processada em testes
     ReflectionTestUtils.setField(sqsHandlerAdapter, "queueUrl", "https://sqs.us-east-1.amazonaws.com/123456789012/my-queue");
   }
