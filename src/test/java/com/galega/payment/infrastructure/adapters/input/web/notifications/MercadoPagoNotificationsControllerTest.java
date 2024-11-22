@@ -1,12 +1,15 @@
 package com.galega.payment.infrastructure.adapters.input.web.notifications;
 
+import com.galega.payment.BaseTestEnv;
 import com.galega.payment.application.ports.input.UpdatePaymentStatusUseCase;
 import com.galega.payment.domain.exception.PaymentErrorException;
+import com.galega.payment.infrastructure.adapters.input.queue.SQSHandlerAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -18,7 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(MercadoPagoNotificationsController.class)
-class MercadoPagoNotificationsControllerTest {
+class MercadoPagoNotificationsControllerTest extends BaseTestEnv {
 
     private MockMvc mockMvc;
 

@@ -13,7 +13,7 @@ import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
 import software.amazon.awssdk.services.sns.model.PublishResponse;
 
-@Component
+@Component("snsHandlerAdapter")
 public class SNSHandlerAdapter implements NotifyPaymentPort {
 
   @Value("${aws.sns.topic.arn}")

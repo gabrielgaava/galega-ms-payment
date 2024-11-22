@@ -2,6 +2,8 @@ package com.galega.payment.infrastructure.adapters.input.queue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.galega.payment.application.ports.input.CreatePaymentUseCase;
 import com.galega.payment.domain.model.order.Order;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,25 +24,33 @@ public class SQSHandlerAdapter {
   @Value("${aws.sqs.queue.url}")
   private String queueUrl;
 
+  @Value("${sqs.listener.enabled}")
+  private Boolean listenerEnabled;
+
   private final int MAX_NUMBER_MESSAGES = 5;
   private final int WAIT_TIME_SECONDS = 20;
 
   private final SqsClient sqsClient;
   private final ExecutorService executorService;
   private final CreatePaymentUseCase createPaymentUseCase;
+  private final ObjectMapper objectMapper;
 
   public SQSHandlerAdapter(@Qualifier("sqsClient") SqsClient sqsClient, CreatePaymentUseCase createPaymentUseCase) {
     this.sqsClient = sqsClient;
     this.createPaymentUseCase = createPaymentUseCase;
     this.executorService = Executors.newSingleThreadExecutor();
+    this.objectMapper = new ObjectMapper();
+    this.objectMapper.registerModule(new JavaTimeModule());
+    this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
   }
-
 
   @PostConstruct
   public void startListening() {
-    // Submete o método para execução contínua
-    System.out.println("Listening Queue: " + queueUrl);
-    executorService.submit(this::listenQueue);
+    System.out.println("FLAG: " + listenerEnabled);
+    if(Boolean.TRUE.equals(listenerEnabled)) {
+      System.out.println("Listening Queue: " + queueUrl);
+      executorService.submit(this::listenQueue);
+    }
   }
 
   @PreDestroy
@@ -52,29 +62,30 @@ public class SQSHandlerAdapter {
 
   // Incoming orders with checkout done. Need to proceed to payment gateway
   public void listenQueue() {
+    if(Boolean.TRUE.equals(listenerEnabled)) {
 
-    // Loop contínuo até ser interrompido
-    while (!Thread.currentThread().isInterrupted()) {
+      // Loop contínuo até ser interrompido
+      while (!Thread.currentThread().isInterrupted()) {
 
-      try {
-        ReceiveMessageRequest request = ReceiveMessageRequest.builder()
-            .queueUrl(queueUrl)
-            .maxNumberOfMessages(MAX_NUMBER_MESSAGES)
-            .waitTimeSeconds(WAIT_TIME_SECONDS)
-            .build();
+        try {
+          ReceiveMessageRequest request = ReceiveMessageRequest.builder()
+              .queueUrl(queueUrl)
+              .maxNumberOfMessages(MAX_NUMBER_MESSAGES)
+              .waitTimeSeconds(WAIT_TIME_SECONDS)
+              .build();
 
-        ReceiveMessageResponse response = sqsClient.receiveMessage(request);
-        List<Message> messages = response.messages();
+          ReceiveMessageResponse response = sqsClient.receiveMessage(request);
+          List<Message> messages = response.messages();
+          messages.forEach(this::processMessage);
+        }
 
-        messages.forEach(this::processMessage);
-      }
+        catch (SqsException e) {
+          System.err.println("Error while receiving messages from SQS queue: " + e.getMessage());
+        }
 
-      catch (SqsException e) {
-        System.err.println("Error while receiving messages from SQS queue: " + e.getMessage());
       }
 
     }
-
   }
 
   private void processMessage(Message message) {
@@ -83,7 +94,6 @@ public class SQSHandlerAdapter {
       System.out.println("Processing message: " + message.messageId());
 
       try {
-        ObjectMapper objectMapper = new ObjectMapper();
         Order order = objectMapper.readValue(message.body(), Order.class);
         createPaymentUseCase.createPayment(order);
       }

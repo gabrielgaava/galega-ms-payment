@@ -8,6 +8,7 @@ import com.galega.payment.infrastructure.adapters.output.notification.SNSHandler
 import com.galega.payment.infrastructure.adapters.output.repository.dynamodb.PaymentDynamoAdapter;
 import com.galega.payment.infrastructure.adapters.output.rest.CustomerApiAdapter;
 import com.galega.payment.infrastructure.adapters.output.rest.MercadoPagoAdapter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -37,7 +38,7 @@ public class BeansConfiguration {
       PaymentDynamoAdapter paymentDynamoAdapter,
       CustomerApiAdapter customerApiAdapter,
       MercadoPagoAdapter mercadoPagoAdapter,
-      SNSHandlerAdapter snsHandlerAdapter
+      @Qualifier("snsHandlerAdapter") SNSHandlerAdapter snsHandlerAdapter
   ) {
     return new PaymentService(paymentDynamoAdapter, customerApiAdapter, mercadoPagoAdapter, snsHandlerAdapter);
   }

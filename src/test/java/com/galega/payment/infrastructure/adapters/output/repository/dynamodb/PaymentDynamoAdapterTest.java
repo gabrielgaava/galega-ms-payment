@@ -1,13 +1,16 @@
 package com.galega.payment.infrastructure.adapters.output.repository.dynamodb;
 
+import com.galega.payment.BaseTestEnv;
 import com.galega.payment.domain.exception.PaymentErrorException;
 import com.galega.payment.domain.model.payment.Payment;
+import com.galega.payment.infrastructure.adapters.input.queue.SQSHandlerAdapter;
 import com.galega.payment.infrastructure.adapters.output.repository.dynamodb.mapper.DynamoPaymentMapper;
 import com.galega.payment.utils.MockHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
@@ -18,7 +21,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class PaymentDynamoAdapterTest {
+class PaymentDynamoAdapterTest extends BaseTestEnv {
 
   @Mock
   private DynamoDbClient dynamoDbClient;
