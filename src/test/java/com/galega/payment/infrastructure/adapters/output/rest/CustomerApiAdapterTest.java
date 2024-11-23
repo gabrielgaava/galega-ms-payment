@@ -1,6 +1,7 @@
 package com.galega.payment.infrastructure.adapters.output.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.galega.payment.BaseTestEnv;
 import com.galega.payment.domain.model.customer.Customer;
 import com.galega.payment.utils.MockHelper;
 import okhttp3.mockwebserver.MockResponse;
@@ -8,23 +9,20 @@ import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(MockitoExtension.class)
-class CustomerApiAdapterTest {
+class CustomerApiAdapterTest extends BaseTestEnv {
 
   private CustomerApiAdapter customerApiAdapter;
 
   private MockWebServer mockWebServer;
 
   @BeforeEach
-  void setUp() throws IOException {
+  public void setup() throws IOException {
     mockWebServer = new MockWebServer();
     mockWebServer.start();
     customerApiAdapter = new CustomerApiAdapter();

@@ -1,48 +1,131 @@
 package com.galega.payment.infrastructure.adapters.input.queue;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.galega.payment.application.ports.input.CreatePaymentUseCase;
+import com.galega.payment.domain.model.order.Order;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.Message;
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+import software.amazon.awssdk.services.sqs.model.*;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+@Component
 public class SQSHandlerAdapter {
 
   @Value("${aws.sqs.queue.url}")
   private String queueUrl;
 
-  private final int MAX_NUMBER_MESSAGES = 10;
-  private final int WAIT_TIME_SECONDS = 20;
-  private SqsClient sqsClient;
+  @Value("${sqs.listener.enabled}")
+  private Boolean listenerEnabled;
 
-  public SQSHandlerAdapter(SqsClient sqsClient) {
+  private final int MAX_NUMBER_MESSAGES = 5;
+  private final int WAIT_TIME_SECONDS = 20;
+
+  private final SqsClient sqsClient;
+  private final ExecutorService executorService;
+  private final CreatePaymentUseCase createPaymentUseCase;
+  private final ObjectMapper objectMapper;
+
+  public SQSHandlerAdapter(@Qualifier("sqsClient") SqsClient sqsClient, CreatePaymentUseCase createPaymentUseCase) {
     this.sqsClient = sqsClient;
+    this.createPaymentUseCase = createPaymentUseCase;
+    this.executorService = Executors.newSingleThreadExecutor();
+    this.objectMapper = new ObjectMapper();
+    this.objectMapper.registerModule(new JavaTimeModule());
+    this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+  }
+
+  @PostConstruct
+  public void startListening() {
+    System.out.println("FLAG: " + listenerEnabled);
+    if(Boolean.TRUE.equals(listenerEnabled)) {
+      System.out.println("Listening Queue: " + queueUrl);
+      executorService.submit(this::listenQueue);
+    }
+  }
+
+  @PreDestroy
+  public void stopListening() {
+    // Finaliza o listener ao encerrar a aplicação
+    System.out.println("Listening Queue Stopped");
+    executorService.shutdownNow();
   }
 
   // Incoming orders with checkout done. Need to proceed to payment gateway
   public void listenQueue() {
+    if(Boolean.TRUE.equals(listenerEnabled)) {
+
+      // Loop contínuo até ser interrompido
+      while (!Thread.currentThread().isInterrupted()) {
+
+        try {
+          ReceiveMessageRequest request = ReceiveMessageRequest.builder()
+              .queueUrl(queueUrl)
+              .maxNumberOfMessages(MAX_NUMBER_MESSAGES)
+              .waitTimeSeconds(WAIT_TIME_SECONDS)
+              .build();
+
+          ReceiveMessageResponse response = sqsClient.receiveMessage(request);
+          List<Message> messages = response.messages();
+          messages.forEach(this::processMessage);
+        }
+
+        catch (SqsException e) {
+          System.err.println("Error while receiving messages from SQS queue: " + e.getMessage());
+        }
+
+      }
+
+    }
+  }
+
+  private void processMessage(Message message) {
+    try {
+
+      System.out.println("Processing message: " + message.messageId());
+
+      try {
+        Order order = objectMapper.readValue(message.body(), Order.class);
+        createPaymentUseCase.createPayment(order);
+      }
+
+      catch (JsonProcessingException e) {
+        System.err.println("Failed to process messagem. Invalid JSON: " + message.body());
+      }
+
+      // Após processar, remova a mensagem da fila
+      deleteMessageFromQueue(message);
+    }
+
+    catch (SqsException e) {
+      System.err.println("Failed to process message: " + message.body());
+    }
+  }
+
+  private void deleteMessageFromQueue(Message message) {
 
     try {
-      ReceiveMessageRequest request = ReceiveMessageRequest.builder()
+      DeleteMessageRequest deleteMessageRequest = DeleteMessageRequest
+          .builder()
           .queueUrl(queueUrl)
-          .maxNumberOfMessages(MAX_NUMBER_MESSAGES)
-          .waitTimeSeconds(WAIT_TIME_SECONDS)
+          .receiptHandle(message.receiptHandle())
           .build();
 
-      ReceiveMessageResponse response = sqsClient.receiveMessage(request);
-      List<Message> messages = response.messages();
-
-      for (Message message : messages) {
-        System.out.println(message);
-      }
+      sqsClient.deleteMessage(deleteMessageRequest);
     }
 
-    catch (Exception e) {
-      System.out.println("Error while receiving messages from SQS queue: ");
+    catch (SqsException e) {
+      System.err.println(e.awsErrorDetails().errorMessage());
     }
-
 
   }
 

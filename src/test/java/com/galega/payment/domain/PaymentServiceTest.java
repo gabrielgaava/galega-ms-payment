@@ -1,6 +1,8 @@
 package com.galega.payment.domain;
 
+import com.galega.payment.BaseTestEnv;
 import com.galega.payment.application.ports.output.CustomerPort;
+import com.galega.payment.application.ports.output.NotifyPaymentPort;
 import com.galega.payment.application.ports.output.PaymentGatewayPort;
 import com.galega.payment.application.ports.output.PaymentRepositoryPort;
 import com.galega.payment.domain.exception.PaymentErrorException;
@@ -8,11 +10,15 @@ import com.galega.payment.domain.model.customer.Customer;
 import com.galega.payment.domain.model.order.Order;
 import com.galega.payment.domain.model.payment.CheckoutMessage;
 import com.galega.payment.domain.model.payment.Payment;
+import com.galega.payment.domain.model.payment.PaymentStatus;
 import com.galega.payment.domain.service.PaymentService;
+import com.galega.payment.infrastructure.adapters.input.queue.SQSHandlerAdapter;
 import com.galega.payment.utils.MockHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
 
@@ -20,19 +26,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class PaymentServiceTest {
+class PaymentServiceTest extends BaseTestEnv {
 
   private PaymentService paymentService;
   private PaymentRepositoryPort paymentRepositoryPort;
   private CustomerPort customerPort;
   private PaymentGatewayPort paymentGatewayPort;
+  private NotifyPaymentPort notifyPaymentPort;
 
   @BeforeEach
-  void setUp() {
+  public void setUp() {
     paymentRepositoryPort = mock(PaymentRepositoryPort.class);
     customerPort = mock(CustomerPort.class);
     paymentGatewayPort = mock(PaymentGatewayPort.class);
-    paymentService = new PaymentService(paymentRepositoryPort, customerPort, paymentGatewayPort);
+    notifyPaymentPort = mock(NotifyPaymentPort.class);
+    paymentService = new PaymentService(paymentRepositoryPort, customerPort, paymentGatewayPort, notifyPaymentPort);
   }
 
   @Test
@@ -136,10 +144,53 @@ class PaymentServiceTest {
   }
 
   @Test
-  void updatePaymentStatus_successfulRealUpdate() throws PaymentErrorException {
+  void updatePaymentStatus_APPROVED_successfulRealUpdate() throws PaymentErrorException {
     // Arrange
     Payment payment = MockHelper.getCreatedPayment();
     Payment updatedPayment = MockHelper.getPaymentPaid();
+    updatedPayment.setStatus(PaymentStatus.APPROVED.toString());
+
+    when(paymentRepositoryPort.findBy("externalId", payment.getExternalId())).thenReturn(payment);
+    when(paymentGatewayPort.handlePaymentUpdate(payment)).thenReturn(updatedPayment);
+    when(paymentRepositoryPort.createOrUpdate(any(Payment.class))).thenReturn(updatedPayment);
+
+    // Act
+    Payment result = paymentService.updatePaymentStatus(payment.getExternalId(), false);
+
+    // Assert
+    assertNotNull(result);
+    assertNotNull(result.getPayedAt());
+    assertThat(result).usingRecursiveComparison().isEqualTo(updatedPayment);
+    verify(paymentGatewayPort).handlePaymentUpdate(payment);
+  }
+
+  @Test
+  void updatePaymentStatus_REFUSED_successfulRealUpdate() throws PaymentErrorException {
+    // Arrange
+    Payment payment = MockHelper.getCreatedPayment();
+    Payment updatedPayment = MockHelper.getPaymentPaid();
+    updatedPayment.setStatus(PaymentStatus.REFUSED.toString());
+
+    when(paymentRepositoryPort.findBy("externalId", payment.getExternalId())).thenReturn(payment);
+    when(paymentGatewayPort.handlePaymentUpdate(payment)).thenReturn(updatedPayment);
+    when(paymentRepositoryPort.createOrUpdate(any(Payment.class))).thenReturn(updatedPayment);
+
+    // Act
+    Payment result = paymentService.updatePaymentStatus(payment.getExternalId(), false);
+
+    // Assert
+    assertNotNull(result);
+    assertNotNull(result.getPayedAt());
+    assertThat(result).usingRecursiveComparison().isEqualTo(updatedPayment);
+    verify(paymentGatewayPort).handlePaymentUpdate(payment);
+  }
+
+  @Test
+  void updatePaymentStatus_CANCELLED_successfulRealUpdate() throws PaymentErrorException {
+    // Arrange
+    Payment payment = MockHelper.getCreatedPayment();
+    Payment updatedPayment = MockHelper.getPaymentPaid();
+    updatedPayment.setStatus(PaymentStatus.CANCELLED.toString());
 
     when(paymentRepositoryPort.findBy("externalId", payment.getExternalId())).thenReturn(payment);
     when(paymentGatewayPort.handlePaymentUpdate(payment)).thenReturn(updatedPayment);

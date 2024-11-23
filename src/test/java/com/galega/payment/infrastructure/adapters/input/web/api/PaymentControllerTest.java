@@ -1,16 +1,19 @@
 package com.galega.payment.infrastructure.adapters.input.web.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.galega.payment.BaseTestEnv;
 import com.galega.payment.application.ports.input.CreatePaymentUseCase;
 import com.galega.payment.application.ports.input.GetPaymentUseCase;
 import com.galega.payment.domain.model.order.Order;
 import com.galega.payment.domain.model.payment.Payment;
+import com.galega.payment.infrastructure.adapters.input.queue.SQSHandlerAdapter;
 import com.galega.payment.utils.MockHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -26,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PaymentController.class)
-public class PaymentControllerTest {
+public class PaymentControllerTest extends BaseTestEnv {
 
   @Mock
   private CreatePaymentUseCase createPaymentUseCase;
@@ -36,11 +39,8 @@ public class PaymentControllerTest {
 
   private MockMvc mockMvc;
 
-  @Autowired
-  private ObjectMapper objectMapper;
-
   @BeforeEach
-  void setUp() {
+  public void setup() {
     this.mockMvc = MockMvcBuilders
         .standaloneSetup(new PaymentController(createPaymentUseCase, getPaymentUseCase))
         .build();
@@ -59,7 +59,7 @@ public class PaymentControllerTest {
     // Then
     mockMvc.perform(MockMvcRequestBuilders
             .post("/payments")
-            .content(objectMapper.writeValueAsString(order))
+            .content(this.objectMapper.writeValueAsString(order))
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON))
         .andDo(print())
@@ -160,7 +160,7 @@ public class PaymentControllerTest {
     // When and Then
     mockMvc.perform(post("/payments/fake-checkout")
             .contentType("application/json")
-            .content(objectMapper.writeValueAsString(order)))
+            .content(this.objectMapper.writeValueAsString(order)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").exists())
         .andExpect(jsonPath("$.amount").value(payment.getAmount()))

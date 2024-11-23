@@ -1,9 +1,11 @@
 package com.galega.payment.infrastructure.adapters.output.rest;
 
+import com.galega.payment.BaseTestEnv;
 import com.galega.payment.domain.exception.PaymentErrorException;
 import com.galega.payment.domain.model.payment.CheckoutMessage;
 import com.galega.payment.domain.model.payment.Payment;
 import com.galega.payment.domain.model.payment.PaymentStatus;
+import com.galega.payment.infrastructure.adapters.input.queue.SQSHandlerAdapter;
 import com.galega.payment.utils.MockHelper;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.payment.PaymentCreateRequest;
@@ -29,7 +31,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class MercadoPagoAdapterTest {
+public class MercadoPagoAdapterTest extends BaseTestEnv {
 
   @InjectMocks
   private MercadoPagoAdapter mercadoPagoAdapter;
