@@ -39,11 +39,8 @@ public class PaymentControllerTest extends BaseTestEnv {
 
   private MockMvc mockMvc;
 
-  @Autowired
-  private ObjectMapper objectMapper;
-
   @BeforeEach
-  void setUp() {
+  public void setup() {
     this.mockMvc = MockMvcBuilders
         .standaloneSetup(new PaymentController(createPaymentUseCase, getPaymentUseCase))
         .build();
@@ -62,7 +59,7 @@ public class PaymentControllerTest extends BaseTestEnv {
     // Then
     mockMvc.perform(MockMvcRequestBuilders
             .post("/payments")
-            .content(objectMapper.writeValueAsString(order))
+            .content(this.objectMapper.writeValueAsString(order))
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON))
         .andDo(print())
@@ -163,7 +160,7 @@ public class PaymentControllerTest extends BaseTestEnv {
     // When and Then
     mockMvc.perform(post("/payments/fake-checkout")
             .contentType("application/json")
-            .content(objectMapper.writeValueAsString(order)))
+            .content(this.objectMapper.writeValueAsString(order)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").exists())
         .andExpect(jsonPath("$.amount").value(payment.getAmount()))

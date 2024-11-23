@@ -35,6 +35,8 @@ public class SNSHandlerAdapter implements NotifyPaymentPort {
     try {
       String message = objectMapper.writeValueAsString(payment);
 
+      System.out.println("ARN:" + topicArn);
+
       // Cria o PublishRequest com os detalhes da mensagem
       PublishRequest publishRequest = PublishRequest.builder()
           .topicArn(topicArn)

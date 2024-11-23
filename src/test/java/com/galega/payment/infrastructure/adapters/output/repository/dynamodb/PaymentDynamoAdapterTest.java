@@ -29,7 +29,7 @@ class PaymentDynamoAdapterTest extends BaseTestEnv {
   private PaymentDynamoAdapter paymentDynamoAdapter;
 
   @BeforeEach
-  void setup() {
+  public void setUp() {
     MockitoAnnotations.openMocks(this);
     paymentDynamoAdapter = new PaymentDynamoAdapter(dynamoDbClient);
   }

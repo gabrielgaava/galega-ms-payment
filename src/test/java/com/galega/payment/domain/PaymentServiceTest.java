@@ -10,6 +10,7 @@ import com.galega.payment.domain.model.customer.Customer;
 import com.galega.payment.domain.model.order.Order;
 import com.galega.payment.domain.model.payment.CheckoutMessage;
 import com.galega.payment.domain.model.payment.Payment;
+import com.galega.payment.domain.model.payment.PaymentStatus;
 import com.galega.payment.domain.service.PaymentService;
 import com.galega.payment.infrastructure.adapters.input.queue.SQSHandlerAdapter;
 import com.galega.payment.utils.MockHelper;
@@ -34,7 +35,7 @@ class PaymentServiceTest extends BaseTestEnv {
   private NotifyPaymentPort notifyPaymentPort;
 
   @BeforeEach
-  void setUp() {
+  public void setUp() {
     paymentRepositoryPort = mock(PaymentRepositoryPort.class);
     customerPort = mock(CustomerPort.class);
     paymentGatewayPort = mock(PaymentGatewayPort.class);
@@ -143,10 +144,53 @@ class PaymentServiceTest extends BaseTestEnv {
   }
 
   @Test
-  void updatePaymentStatus_successfulRealUpdate() throws PaymentErrorException {
+  void updatePaymentStatus_APPROVED_successfulRealUpdate() throws PaymentErrorException {
     // Arrange
     Payment payment = MockHelper.getCreatedPayment();
     Payment updatedPayment = MockHelper.getPaymentPaid();
+    updatedPayment.setStatus(PaymentStatus.APPROVED.toString());
+
+    when(paymentRepositoryPort.findBy("externalId", payment.getExternalId())).thenReturn(payment);
+    when(paymentGatewayPort.handlePaymentUpdate(payment)).thenReturn(updatedPayment);
+    when(paymentRepositoryPort.createOrUpdate(any(Payment.class))).thenReturn(updatedPayment);
+
+    // Act
+    Payment result = paymentService.updatePaymentStatus(payment.getExternalId(), false);
+
+    // Assert
+    assertNotNull(result);
+    assertNotNull(result.getPayedAt());
+    assertThat(result).usingRecursiveComparison().isEqualTo(updatedPayment);
+    verify(paymentGatewayPort).handlePaymentUpdate(payment);
+  }
+
+  @Test
+  void updatePaymentStatus_REFUSED_successfulRealUpdate() throws PaymentErrorException {
+    // Arrange
+    Payment payment = MockHelper.getCreatedPayment();
+    Payment updatedPayment = MockHelper.getPaymentPaid();
+    updatedPayment.setStatus(PaymentStatus.REFUSED.toString());
+
+    when(paymentRepositoryPort.findBy("externalId", payment.getExternalId())).thenReturn(payment);
+    when(paymentGatewayPort.handlePaymentUpdate(payment)).thenReturn(updatedPayment);
+    when(paymentRepositoryPort.createOrUpdate(any(Payment.class))).thenReturn(updatedPayment);
+
+    // Act
+    Payment result = paymentService.updatePaymentStatus(payment.getExternalId(), false);
+
+    // Assert
+    assertNotNull(result);
+    assertNotNull(result.getPayedAt());
+    assertThat(result).usingRecursiveComparison().isEqualTo(updatedPayment);
+    verify(paymentGatewayPort).handlePaymentUpdate(payment);
+  }
+
+  @Test
+  void updatePaymentStatus_CANCELLED_successfulRealUpdate() throws PaymentErrorException {
+    // Arrange
+    Payment payment = MockHelper.getCreatedPayment();
+    Payment updatedPayment = MockHelper.getPaymentPaid();
+    updatedPayment.setStatus(PaymentStatus.CANCELLED.toString());
 
     when(paymentRepositoryPort.findBy("externalId", payment.getExternalId())).thenReturn(payment);
     when(paymentGatewayPort.handlePaymentUpdate(payment)).thenReturn(updatedPayment);

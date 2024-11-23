@@ -22,7 +22,7 @@ class CustomerApiAdapterTest extends BaseTestEnv {
   private MockWebServer mockWebServer;
 
   @BeforeEach
-  void setUp() throws IOException {
+  public void setup() throws IOException {
     mockWebServer = new MockWebServer();
     mockWebServer.start();
     customerApiAdapter = new CustomerApiAdapter();

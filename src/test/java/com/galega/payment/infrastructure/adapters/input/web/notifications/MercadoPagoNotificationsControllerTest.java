@@ -29,7 +29,7 @@ class MercadoPagoNotificationsControllerTest extends BaseTestEnv {
     UpdatePaymentStatusUseCase updatePaymentStatusUseCase;
 
     @BeforeEach
-    void setup() {
+    public void setUp() {
         this.mockMvc = MockMvcBuilders
             .standaloneSetup(new MercadoPagoNotificationsController(updatePaymentStatusUseCase))
             .build();
