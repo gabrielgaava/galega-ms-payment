@@ -30,3 +30,17 @@ resource "aws_dynamodb_table" "payment" {
     write_capacity     = 5
   }
 }
+
+// Repositorio da Imagem Docker do app
+resource "aws_ecr_repository" "galega-ms-payment-app" {
+  name                 = "galega-ms-payment-app"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Project     = "galega"
+  }
+}

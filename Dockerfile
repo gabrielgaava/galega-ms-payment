@@ -20,9 +20,10 @@ FROM amazoncorretto:21-alpine
 WORKDIR /app
 
 # Copy the built JAR file from the builder stage
-COPY --from=builder /home/gradle/src/build/libs/tech-challenge-*.jar /app/tech-challenge.jar
+COPY --from=builder /home/gradle/src/build/libs/galega-ms-payment-*.jar /app/galega-ms-payment.jar
 COPY src/main/resources /app/resources
-ENV JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+
+EXPOSE 9090
 
 # Specify the command to run the application
-CMD ["java", "-jar", "tech-challenge.jar"]
+CMD ["java", "-jar", "galega-ms-payment.jar"]
