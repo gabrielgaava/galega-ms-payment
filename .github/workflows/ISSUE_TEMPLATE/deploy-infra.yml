@@ -1,0 +1,16 @@
+name: Deploy Infrastructure
+description: Issue para disparar a criação da infraestrutura com Terraform.
+title: Deploy Infrastructure
+labels: ['Infra', 'Terraform', 'Deploy']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Por favor, confirme se deseja criar a infraestrutura. Se necessário, edite os detalhes abaixo.
+
+  - type: input
+    id: environment
+    attributes:
+      label: Ambiente (dev, staging, prod)
+      placeholder: Escolha o ambiente
+      description: Indique o ambiente para o deploy.

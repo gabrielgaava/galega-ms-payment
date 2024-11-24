@@ -1,0 +1,14 @@
+name: Destruir Infraestrutura
+description: Use esta issue para disparar a destruição da infraestrutura com Terraform.
+title: Destroy Infrastructure
+labels: destroy, terraform
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Cuidado:** Abrir esta issue iniciará o processo de destruição da infraestrutura provisionada. Confirme se você realmente deseja prosseguir.
+  - type: input
+    id: confirmation
+    attributes:
+      label: Digite "CONFIRM" para prosseguir
+      placeholder: CONFIRM
