@@ -4,6 +4,7 @@ kind: Service
 metadata:
   name: galega-ms-payment
   annotations:
+    service.beta.kubernetes.io/aws-load-balancer-name: "galega-ms-payment-lb"
     service.beta.kubernetes.io/aws-load-balancer-internal: "true"  # Load Balancer Interno
     service.beta.kubernetes.io/aws-load-balancer-type: "nlb"       # Network Load Balancer
     service.beta.kubernetes.io/aws-load-balancer-scheme: "internal" # (Opcional) Especifica que o LB é interno

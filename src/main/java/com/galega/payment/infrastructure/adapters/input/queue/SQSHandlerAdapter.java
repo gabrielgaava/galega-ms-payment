@@ -99,6 +99,7 @@ public class SQSHandlerAdapter {
       }
 
       catch (JsonProcessingException e) {
+        System.err.println(e.getMessage());
         System.err.println("Failed to process messagem. Invalid JSON: " + message.body());
       }
 
@@ -107,6 +108,7 @@ public class SQSHandlerAdapter {
     }
 
     catch (SqsException e) {
+      System.err.println(e.getMessage());
       System.err.println("Failed to process message: " + message.body());
     }
   }
