@@ -6,23 +6,24 @@ import com.galega.payment.application.ports.output.NotifyPaymentPort;
 import com.galega.payment.application.ports.output.PaymentGatewayPort;
 import com.galega.payment.application.ports.output.PaymentRepositoryPort;
 import com.galega.payment.domain.exception.PaymentErrorException;
+import com.galega.payment.domain.exception.PaymentNotFound;
 import com.galega.payment.domain.model.customer.Customer;
 import com.galega.payment.domain.model.order.Order;
 import com.galega.payment.domain.model.payment.CheckoutMessage;
 import com.galega.payment.domain.model.payment.Payment;
 import com.galega.payment.domain.model.payment.PaymentStatus;
 import com.galega.payment.domain.service.PaymentService;
-import com.galega.payment.infrastructure.adapters.input.queue.SQSHandlerAdapter;
 import com.galega.payment.utils.MockHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.BDDAssertions.then;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -256,5 +257,75 @@ class PaymentServiceTest extends BaseTestEnv {
     assertNotNull(result);
     assertEquals(2, result.size());
     verify(paymentRepositoryPort).getAll();
+  }
+
+  @Test
+  void findByFilter_withOrderIdFilter_returnsPayment() {
+    // Setup: mockando a lista de pagamentos
+    Payment payment1 = MockHelper.getCreatedPayment();
+    Payment payment2 = MockHelper.getCreatedPayment();
+    payment2.setOrderId(UUID.randomUUID());
+    payment2.setId(UUID.randomUUID());
+
+    when(paymentRepositoryPort.getAll()).thenReturn(List.of(payment1, payment2));
+
+    // Chama o método
+    Payment result = paymentService.findByFilter("orderId", payment1.getOrderId().toString());
+
+    // Verifica o resultado
+    assertNotNull(result);
+    then(result).usingRecursiveComparison().isEqualTo(payment1);
+    verify(paymentRepositoryPort, times(1)).getAll();
+  }
+
+  @Test
+  void testFindByFilter_withNoMatchingOrderId_returnsNull() {
+    // Setup: mockando a lista de pagamentos
+    Payment payment1 = MockHelper.getCreatedPayment();
+    Payment payment2 = MockHelper.getCreatedPayment();
+    payment2.setOrderId(UUID.randomUUID());
+    payment2.setId(UUID.randomUUID());
+
+    when(paymentRepositoryPort.getAll()).thenReturn(List.of(payment1, payment2));
+
+    // Chama o método
+    Payment result = paymentService.findByFilter("orderId", "not-exist");
+
+    // Verifica o resultado
+    assertNull(result);
+    verify(paymentRepositoryPort, times(1)).getAll();
+  }
+
+
+  @Test()
+  void testFindByFilter_withEmptyReturn_throwsException() {
+    when(paymentRepositoryPort.getAll()).thenReturn(Collections.emptyList());
+
+    // Chama o método
+    Payment result = paymentService.findByFilter("orderId", "not-exist");
+    assertNull(result);
+  }
+
+  @Test()
+  void testFindByFilter_withInvalidFilterKey_throwsException() {
+    // Setup: mockando a lista de pagamentos
+    Payment payment1 = MockHelper.getCreatedPayment();
+    Payment payment2 = MockHelper.getCreatedPayment();
+    payment2.setOrderId(UUID.randomUUID());
+    payment2.setId(UUID.randomUUID());
+
+    when(paymentRepositoryPort.getAll()).thenReturn(List.of(payment1, payment2));
+
+    // Chama o método
+    try {
+      paymentService.findByFilter("notValidFilter", "not-exist");
+      fail("Should throw PaymentNotFound exception");
+    }
+
+    catch (PaymentNotFound erro) {
+      assertEquals(erro.getIdentifierKey(), "notValidFilter");
+      assertEquals(erro.getIdentifierValue(), "not-exist");
+    }
+
   }
 }

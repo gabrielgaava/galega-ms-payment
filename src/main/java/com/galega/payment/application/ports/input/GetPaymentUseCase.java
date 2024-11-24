@@ -15,4 +15,6 @@ public interface GetPaymentUseCase {
 
   public List<Payment> getAllPayments();
 
+  public Payment findByFilter(String filterKey, String filterValue) throws PaymentNotFound;
+
 }
