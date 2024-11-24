@@ -1,0 +1,40 @@
+name: Destroy Infra with Terraform
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  destroy_infra:
+    if: ${{ github.event.issue.title == 'Destroy Infrastructure' && github.event.issue.body contains 'CONFIRM' }} # Verifica título e confirmação
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout do repositório
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      # Configurar o Terraform
+      - name: Configurar o Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7 # Ajuste a versão conforme necessário
+
+      # Inicializar o Terraform
+      - name: Inicializar o Terraform
+        working-directory: ./infra
+        run: terraform init
+
+      # Planejar a destruição
+      - name: Planejar a destruição
+        working-directory: ./infra
+        run: terraform plan -destroy -out=tfplan
+
+      # Aplicar a destruição
+      - name: Destruir a infraestrutura
+        working-directory: ./infra
+        run: terraform apply -auto-approve tfplan
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}

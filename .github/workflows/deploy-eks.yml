@@ -1,0 +1,95 @@
+---
+name: Push and Deploy to AWS
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build-and-push:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and Push Docker Image
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: galega-ms-payment-app
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      # Configura kubectl com o contexto do cluster EKS
+      - name: Set up kubectl
+        run: |
+          aws eks update-kubeconfig --region us-east-1 --name ${{ secrets.CLUSTER_NAME }}
+
+      - name: Create ConfigMap file for EKS
+        run: |
+          # Substitui as variáveis de ambiente nos placeholders do template
+          envsubst < src/resources/deployment/app-configmap.yaml > configmap.yaml
+        env:
+          SPRING_APPLICATION_NAME: ${{ secrets.SPRING_APPLICATION_NAME }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+          AWS_SQS_QUEUE_URL: ${{ secrets.AWS_SQS_QUEUE_URL }}
+          AWS_SNS_TOPIC_ARN: ${{ secrets.AWS_SNS_TOPIC_ARN }}
+          MERCADOPAGO_ACCESS_KEY: ${{ secrets.MERCADOPAGO_ACCESS_KEY }}
+          MERCADOPAGO_PUBLIC_KEY: ${{ secrets.MERCADOPAGO_PUBLIC_KEY }}
+          MERCADOPAGO_DEBUG_LOG: ${{ secrets.MERCADOPAGO_DEBUG_LOG }}
+          MOCK_API: ${{ secrets.MOCK_API }}
+          AWS_EKS_SERVICE_CUSTOMER: ${{ secrets.AWS_EKS_SERVICE_CUSTOMER }}
+          SQS_LISTENER_ENABLED: ${{ secrets.SQS_LISTENER_ENABLED }}
+
+      # Aplica o arquivo postgres-secrets.yaml com as credenciais
+      - name: Apply ConfigMap
+        run: |
+          kubectl apply -f configmap.yaml
+
+      # Aplicar o deployment ou atualização no cluster EKS
+      - name: Deploy to EKS
+        run: |
+          cd src/main/resources/deployment/
+          kubectl apply -f app-deploy.yaml
+
+      - name: Wait for deployment to be ready
+        run: |
+          kubectl rollout status deployment/spring-rest-api
+
+      - name: Update image in Deployment
+        run: |
+          kubectl set image deployment/spring-rest-api spring-rest-api=${{ steps.login-ecr.outputs.registry }}/tech-challenge-fiap:latest
+
+    env:
+      SPRING_APPLICATION_NAME: ${{ secrets.SPRING_APPLICATION_NAME }}
+      SERVER_PORT: ${{ secrets.SERVER_PORT }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+      AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+      AWS_SQS_QUEUE_URL: ${{ secrets.AWS_SQS_QUEUE_URL }}
+      AWS_SNS_TOPIC_ARN: ${{ secrets.AWS_SNS_TOPIC_ARN }}
+      MERCADOPAGO_ACCESS_KEY: ${{ secrets.MERCADOPAGO_ACCESS_KEY }}
+      MERCADOPAGO_PUBLIC_KEY: ${{ secrets.MERCADOPAGO_PUBLIC_KEY }}
+      MERCADOPAGO_DEBUG_LOG: ${{ secrets.MERCADOPAGO_DEBUG_LOG }}
+      MOCK_API: ${{ secrets.MOCK_API }}
+      AWS_EKS_SERVICE_CUSTOMER: ${{ secrets.AWS_EKS_SERVICE_CUSTOMER }}
+      SQS_LISTENER_ENABLED: ${{ secrets.SQS_LISTENER_ENABLED }}
