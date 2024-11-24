@@ -42,7 +42,7 @@ jobs:
       - name: Create ConfigMap file for EKS
         run: |
           # Substitui as variáveis de ambiente nos placeholders do template
-          envsubst < src/resources/deployment/app-configmap.yaml > configmap.yaml
+          envsubst < src/main/resources/deployment/app-configmap.yaml > configmap.yaml
         env:
           SPRING_APPLICATION_NAME: ${{ secrets.SPRING_APPLICATION_NAME }}
           SERVER_PORT: ${{ secrets.SERVER_PORT }}
