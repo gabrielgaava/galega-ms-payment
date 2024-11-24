@@ -3,18 +3,17 @@ kind: ConfigMap
 metadata:
   name: galega-ms-payment-config
 data:
-  application.properties: |
-    spring.application.name=${SPRING_APPLICATION_NAME}
-    server.port=${SERVER_PORT}
-    aws.region=${AWS_REGION}
-    aws.access.key=${AWS_ACCESS_KEY}
-    aws.secret.key=${AWS_SECRET_KEY}
-    aws.session.token=${AWS_SESSION_TOKEN}
-    aws.sqs.queue.url=${AWS_SQS_QUEUE_URL}
-    aws.sns.topic.arn=${AWS_SNS_TOPIC_ARN}
-    mercadopago.access.key=${MERCADOPAGO_ACCESS_KEY}
-    mercadopago.public.key=${MERCADOPAGO_PUBLIC_KEY}
-    mercadopago.debug.log=${MERCADOPAGO_DEBUG_LOG}
-    mock.api=${MOCK_API}
-    aws.eks.service.customer=${AWS_EKS_SERVICE_CUSTOMER}
-    sqs.listener.enabled=${SQS_LISTENER_ENABLED}
+  SPRING_APPLICATION_NAME: "${SPRING_APPLICATION_NAME}"
+  SERVER_PORT: "${SERVER_PORT}"
+  AWS_REGION: "${AWS_REGION}"
+  AWS_ACCESS_KEY: "${AWS_ACCESS_KEY}"
+  AWS_SECRET_KEY: "${AWS_SECRET_KEY}"
+  AWS_SESSION_TOKEN: "${AWS_SESSION_TOKEN}"
+  AWS_SQS_QUEUE_URL: "${AWS_SQS_QUEUE_URL}"
+  AWS_SNS_TOPIC_ARN: "${AWS_SNS_TOPIC_ARN}"
+  MERCADOPAGO_ACCESS_KEY: "${MERCADOPAGO_ACCESS_KEY}"
+  MERCADOPAGO_PUBLIC_KEY: "${MERCADOPAGO_PUBLIC_KEY}"
+  MERCADOPAGO_DEBUG_LOG: "${MERCADOPAGO_DEBUG_LOG}"
+  MOCK_API: "${MOCK_API}"
+  AWS_EKS_SERVICE_CUSTOMER: "${AWS_EKS_SERVICE_CUSTOMER}"
+  SQS_LISTENER_ENABLED: "${SQS_LISTENER_ENABLED}"

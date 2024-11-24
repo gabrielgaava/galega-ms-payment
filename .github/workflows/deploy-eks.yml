@@ -76,9 +76,10 @@ jobs:
 
       - name: Update image in Deployment
         run: |
-          kubectl set image deployment/spring-rest-api spring-rest-api=${{ steps.login-ecr.outputs.registry }}/tech-challenge-fiap:latest
+          kubectl set image deployment/galega-ms-payment  galega-ms-payment =${{ steps.login-ecr.outputs.registry }}/galega-ms-payment-app:latest
 
     env:
+
       SPRING_APPLICATION_NAME: ${{ secrets.SPRING_APPLICATION_NAME }}
       SERVER_PORT: ${{ secrets.SERVER_PORT }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
