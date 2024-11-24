@@ -72,11 +72,11 @@ jobs:
 
       - name: Wait for deployment to be ready
         run: |
-          kubectl rollout status deployment/spring-rest-api
+          kubectl rollout status deployment/${{ secrets.SPRING_APPLICATION_NAME }}
 
       - name: Update image in Deployment
         run: |
-          kubectl set image deployment/galega-ms-payment  galega-ms-payment =${{ steps.login-ecr.outputs.registry }}/galega-ms-payment-app:latest
+          kubectl set image deployment/${{ secrets.SPRING_APPLICATION_NAME }}  ${{ secrets.SPRING_APPLICATION_NAME }} =${{ steps.login-ecr.outputs.registry }}/${{ secrets.SPRING_APPLICATION_NAME }}-app:latest
 
     env:
 
