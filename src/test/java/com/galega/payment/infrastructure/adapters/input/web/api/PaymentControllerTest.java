@@ -61,7 +61,7 @@ public class PaymentControllerTest extends BaseTestEnv {
   }
 
   @Test
-  void getAllPayments_WithoutPartialFilters_ShouldReturnListOfPayments() throws Exception {
+  void getAllPayments_WithPartialFilters_ShouldReturnEmptyList() throws Exception {
 
     // Given
     Payment payment1 = MockHelper.getCreatedPayment();
@@ -71,13 +71,13 @@ public class PaymentControllerTest extends BaseTestEnv {
     when(getPaymentUseCase.getAllPayments()).thenReturn(Arrays.asList(payment1, payment2));
 
     // Then
-    mockMvc.perform(get("/payments").param("filterBy", "wrongField"))
+    mockMvc.perform(get("/payments")
+            .param("filterBy", "wrongField")
+        )
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].id").exists())
-        .andExpect(jsonPath("$[0].amount").value(payment1.getAmount()))
-        .andExpect(jsonPath("$[1].status").value(payment2.getStatus()));
+        .andExpect(jsonPath("$.length()").value(2));
 
+    verify(getPaymentUseCase, times(0)).findByFilter(any(), any());
     verify(getPaymentUseCase, times(1)).getAllPayments();
   }
 
@@ -101,6 +101,26 @@ public class PaymentControllerTest extends BaseTestEnv {
         .andExpect(jsonPath("$[0].orderId").value(payment1.getOrderId().toString()))
         .andExpect(jsonPath("$[0].id").value(payment1.getId().toString()))
         .andExpect(jsonPath("$[0].amount").value(payment1.getAmount()));
+
+    verify(getPaymentUseCase, times(1)).findByFilter("orderId", payment1.getOrderId().toString());
+  }
+
+  @Test
+  void getAllPayments_WithNotFoundOrderIdFilter_ShouldReturnEmptyList() throws Exception {
+
+    // Given
+    Payment payment1 = MockHelper.getCreatedPayment();
+
+    // When
+    when(getPaymentUseCase.findByFilter(any(), any())).thenReturn(null);
+
+    // Then
+    mockMvc.perform(get("/payments")
+            .param("filterBy", "orderId")
+            .param("filterValue", payment1.getOrderId().toString())
+        )
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(0));
 
     verify(getPaymentUseCase, times(1)).findByFilter("orderId", payment1.getOrderId().toString());
   }

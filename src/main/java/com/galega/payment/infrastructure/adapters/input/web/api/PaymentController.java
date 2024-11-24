@@ -8,8 +8,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,6 +31,11 @@ public class PaymentController {
   ){
     if(filterField != null && filterValue != null){
       Payment payment = getPaymentUseCase.findByFilter(filterField, filterValue);
+
+      if(payment == null) {
+        return ResponseEntity.ok(Collections.emptyList());
+      }
+
       return ResponseEntity.ok(Collections.singletonList(payment));
     }
 
