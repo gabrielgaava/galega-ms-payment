@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -23,14 +24,21 @@ public class PaymentController {
     this.getPaymentUseCase = getPaymentUseCase;
   }
 
-  @PostMapping
-  public ResponseEntity<Payment> createPayment(@RequestBody Order order) {
-    Payment createdPayment = createPaymentUseCase.createPayment(order);
-    return ResponseEntity.ok(createdPayment);
-  }
-
   @GetMapping
-  public ResponseEntity<List<Payment>> getAllPayments() {
+  public ResponseEntity<List<Payment>> getAllPayments(
+      @RequestParam(value = "filterBy", required = false) String filterField,
+      @RequestParam(value = "filterValue", required = false) String filterValue
+  ){
+    if(filterField != null && filterValue != null){
+      Payment payment = getPaymentUseCase.findByFilter(filterField, filterValue);
+
+      if(payment == null) {
+        return ResponseEntity.ok(Collections.emptyList());
+      }
+
+      return ResponseEntity.ok(Collections.singletonList(payment));
+    }
+
     List<Payment> payment = getPaymentUseCase.getAllPayments();
     return ResponseEntity.ok(payment);
   }

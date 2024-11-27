@@ -8,13 +8,16 @@ import com.galega.payment.application.ports.output.NotifyPaymentPort;
 import com.galega.payment.application.ports.output.PaymentGatewayPort;
 import com.galega.payment.application.ports.output.PaymentRepositoryPort;
 import com.galega.payment.domain.exception.PaymentErrorException;
+import com.galega.payment.domain.exception.PaymentNotFound;
 import com.galega.payment.domain.model.customer.Customer;
 import com.galega.payment.domain.model.order.Order;
 import com.galega.payment.domain.model.payment.CheckoutMessage;
 import com.galega.payment.domain.model.payment.Payment;
 import com.galega.payment.domain.model.payment.PaymentStatus;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class PaymentService implements CreatePaymentUseCase, GetPaymentUseCase, UpdatePaymentStatusUseCase {
 
@@ -83,6 +86,27 @@ public class PaymentService implements CreatePaymentUseCase, GetPaymentUseCase, 
   @Override
   public List<Payment> getAllPayments() {
     return paymentRepositoryPort.getAll();
+  }
+
+  @Override
+  public Payment findByFilter(String filterKey, String filterValue) throws PaymentNotFound {
+    List<Payment> payments = this.getAllPayments();
+
+    if(payments == null || payments.isEmpty()) {
+      return null;
+    }
+
+    if(filterKey.equals("orderId")) {
+      List<Payment> findItem = payments.stream()
+          .filter(item -> item.getOrderId().toString().equals(filterValue))
+          .toList();
+
+      if(findItem.isEmpty()) return null;
+      else return findItem.getFirst();
+    }
+
+    throw new PaymentNotFound(filterKey, filterValue);
+
   }
 
   private CheckoutMessage createCheckoutMessage(Order order, Customer customer) {
