@@ -27,7 +27,7 @@ public class CustomerApiAdapter implements CustomerPort {
         .build();
 
     Mono<Customer> response = webClient.get()
-        .uri(uriBuilder -> uriBuilder.path("/customer/{id}").build(id))
+        .uri(uriBuilder -> uriBuilder.path("/customers/{id}").build(id))
         .retrieve()
         .bodyToMono(Customer.class)
         .onErrorResume(WebClientResponseException.class, ex -> {
